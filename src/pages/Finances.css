@@ -1,0 +1,135 @@
+/* Finances.css */
+.balance-card {
+    background: linear-gradient(135deg, var(--color-primary), #2c52e0);
+    padding: 1.5rem;
+    border-radius: 24px;
+    color: white;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 10px 30px rgba(65, 105, 255, 0.3);
+}
+
+.balance-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.balance-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.balance-stats {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background-color: rgba(255, 255, 255, 0.15);
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
+}
+
+.stat-item.income {
+    color: #a7f3d0;
+}
+
+.stat-item.expense {
+    color: #fecaca;
+}
+
+/* Actions */
+.actions-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.action-btn {
+    background-color: var(--bg-card);
+    padding: 1rem;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border: 1px solid var(--border-color);
+    font-weight: 600;
+    color: var(--text-main);
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background-color: var(--bg-card-hover);
+    transform: translateY(-2px);
+}
+
+.action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Transactions */
+.transactions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.trans-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-main);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+}
+
+.trans-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.trans-title {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.trans-date {
+    font-size: 0.8rem;
+    color: var(--text-sec);
+}
+
+.trans-value {
+    font-weight: 600;
+}
+
+.trans-value.income {
+    color: var(--status-success);
+}
+
+.trans-value.expense {
+    color: var(--status-error);
+}

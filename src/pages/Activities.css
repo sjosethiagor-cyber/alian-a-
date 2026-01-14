@@ -1,0 +1,181 @@
+/* Activities.css */
+.page-container {
+    padding-bottom: 2rem;
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Tabs Strip - Scrollable */
+.tabs-strip {
+    display: flex;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    /* Space for scrollbar if needed, mainly spacing */
+    margin-bottom: 1.5rem;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* Hide scrollbar Firefox */
+}
+
+.tabs-strip::-webkit-scrollbar {
+    display: none;
+    /* Hide scrollbar Chrome/Safari */
+}
+
+.tab-pill {
+    flex-shrink: 0;
+    padding: 0.6rem 1rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    color: var(--text-sec);
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.tab-pill.active {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 4px 12px rgba(65, 105, 255, 0.3);
+}
+
+.tab-pill:hover:not(.active) {
+    background-color: var(--bg-card-hover);
+    transform: translateY(-1px);
+}
+
+/* Header Action */
+.add-list-btn-header {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    border: 1px solid var(--border-color);
+    margin-left: auto;
+    /* Push to right if header changes*/
+}
+
+/* List Summary */
+.list-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0 0.5rem;
+}
+
+.list-summary span {
+    color: var(--text-sec);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.add-btn-small {
+    padding: 0.4rem 0.8rem;
+    background-color: rgba(65, 105, 255, 0.1);
+    color: var(--color-primary);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: background-color 0.2s;
+}
+
+.add-btn-small:hover {
+    background-color: rgba(65, 105, 255, 0.2);
+}
+
+/* Activity Card */
+.activity-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background-color: var(--bg-card);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.activity-card:hover {
+    transform: translateX(4px);
+}
+
+.checkbox-custom {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--text-sec);
+    border-radius: 6px;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.checkbox-custom.checked {
+    background-color: var(--status-success);
+    border-color: var(--status-success);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E");
+    background-size: 16px;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.activity-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    /* Prevent text overflow */
+}
+
+.activity-name {
+    font-size: 1rem;
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.activity-name.completed-text {
+    text-decoration: line-through;
+    color: var(--text-sec);
+}
+
+.activity-meta {
+    font-size: 0.8rem;
+    color: var(--color-primary);
+    font-weight: 600;
+    margin-top: 2px;
+}
+
+.delete-btn {
+    color: var(--text-sec);
+    opacity: 0.5;
+    padding: 8px;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.delete-btn:hover {
+    color: var(--status-error);
+    opacity: 1;
+    background-color: rgba(239, 68, 68, 0.1);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-sec);
+    font-style: italic;
+}

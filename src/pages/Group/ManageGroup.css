@@ -1,0 +1,159 @@
+.manage-content {
+    padding-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.manage-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.section-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-left: 4px;
+}
+
+.input-row {
+    display: flex;
+    gap: 12px;
+}
+
+.manage-input {
+    flex: 1;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 14px;
+    color: var(--text-main);
+    font-size: 1rem;
+}
+
+.icon-btn-primary {
+    background-color: var(--color-primary);
+    color: white;
+    width: 50px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(65, 105, 255, 0.3);
+}
+
+.members-list-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: visible;
+    /* Needed for dropdown */
+}
+
+.member-manage-row {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    gap: 1rem;
+}
+
+.member-manage-row:last-child {
+    border-bottom: none;
+}
+
+.member-avatar-small {
+    width: 40px;
+    height: 40px;
+    background-color: rgba(65, 105, 255, 0.1);
+    color: var(--color-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.member-info-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.member-name-text {
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+.member-role-badge {
+    font-size: 0.75rem;
+    color: var(--text-sec);
+}
+
+.menu-wrapper {
+    position: relative;
+}
+
+.more-btn {
+    background: transparent;
+    color: var(--text-sec);
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.more-btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    width: 160px;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.5rem;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    z-index: 50;
+    animation: fadeIn 0.1s ease-out;
+}
+
+.dropdown-menu button {
+    width: 100%;
+    padding: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    background: transparent;
+    cursor: pointer;
+    border-radius: 8px;
+    text-align: left;
+}
+
+.dropdown-menu button:hover {
+    background-color: var(--bg-card-hover);
+}
+
+.dropdown-menu .divider {
+    height: 1px;
+    background-color: var(--border-color);
+    margin: 4px 0;
+}
+
+.dropdown-menu button.danger {
+    color: #ef4444;
+}
+
+.dropdown-menu button.danger:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+}

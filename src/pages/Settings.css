@@ -1,0 +1,120 @@
+/* Shared Settings Screens Styles */
+
+.settings-screen-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding-bottom: 2rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.settings-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+}
+
+.settings-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.settings-desc {
+    color: var(--text-sec);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    padding: 0 4px;
+}
+
+.setting-toggle-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    /* Works for dark mode */
+}
+
+/* Light mode border adjustment handled by var(--border-color) */
+body.light-theme .setting-toggle-item {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.setting-toggle-item:last-child {
+    border-bottom: none;
+}
+
+.setting-toggle-item:hover {
+    background-color: var(--bg-card-hover);
+}
+
+/* Reusing Toggle Switch from Profile.css or defining here if needed */
+/* Assuming Profile.css imported globally or styles are available. 
+   If not, redundancy is safe or moving to index.css is better. 
+   For now, defining here for independence. */
+
+.toggle-switch {
+    width: 44px;
+    height: 24px;
+    background-color: rgba(128, 128, 128, 0.3);
+    border-radius: 12px;
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.toggle-switch.active {
+    background-color: var(--color-primary);
+}
+
+.toggle-thumb {
+    width: 20px;
+    height: 20px;
+    background-color: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggle-switch.active .toggle-thumb {
+    transform: translateX(20px);
+}
+
+.danger-btn {
+    width: 100%;
+    padding: 1rem;
+    border-radius: 16px;
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--status-error);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+.danger-btn:hover {
+    background-color: rgba(239, 68, 68, 0.15);
+}
+
+.link-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    color: var(--text-main);
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.link-item:hover {
+    background-color: var(--bg-card-hover);
+}

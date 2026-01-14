@@ -1,0 +1,142 @@
+/* Group Screens Common & EnterGroup */
+.group-screen-container {
+    min-height: 100vh;
+    background-color: var(--bg-main);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.group-header {
+    margin-bottom: 2rem;
+}
+
+.back-btn {
+    color: var(--text-main);
+    padding: 8px;
+    margin-left: -8px;
+    border-radius: 50%;
+    transition: background 0.2s;
+}
+
+.back-btn:hover {
+    background-color: var(--bg-card-hover);
+}
+
+.group-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 400px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.icon-badge {
+    width: 80px;
+    height: 80px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    margin-bottom: 2rem;
+}
+
+.group-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.group-subtitle {
+    text-align: center;
+    color: var(--text-sec);
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+    line-height: 1.5;
+}
+
+/* OTP Container */
+.otp-container {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 2.5rem;
+    width: 100%;
+}
+
+.otp-input {
+    width: 100%;
+    max-width: 50px;
+    height: 60px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 1.25rem;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.2s;
+}
+
+.otp-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(65, 105, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.primary-action-btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: #2e3092;
+    /* Specific dark blue from image approx */
+    background: linear-gradient(90deg, #2e3092 0%, #4169ff 100%);
+    color: white;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 3rem;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 12px rgba(46, 48, 146, 0.3);
+}
+
+.primary-action-btn:active {
+    transform: scale(0.98);
+}
+
+.help-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    margin-bottom: 2rem;
+    cursor: pointer;
+}
+
+.footer-link {
+    margin-top: auto;
+    font-size: 0.9rem;
+    color: var(--text-sec);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.text-btn {
+    color: var(--text-main);
+    text-decoration: underline;
+    font-weight: 500;
+}

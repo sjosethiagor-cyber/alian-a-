@@ -1,0 +1,259 @@
+/* Auth.css */
+.auth-container {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-main);
+    padding: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background Elements similar to Welcome but subtle */
+.auth-container::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150%;
+    height: 60%;
+    background: radial-gradient(circle at center, rgba(65, 105, 255, 0.15) 0%, rgba(15, 18, 32, 0) 70%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 400px;
+    background-color: transparent;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.auth-header {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo-icon-container {
+    width: 64px;
+    height: 64px;
+    background-color: var(--color-primary);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 10px 25px rgba(65, 105, 255, 0.3);
+}
+
+.app-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.tagline {
+    color: var(--text-sec);
+    font-size: 0.875rem;
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-top: 0.5rem;
+}
+
+.auth-subtitle {
+    color: var(--text-sec);
+    font-size: 0.95rem;
+    max-width: 280px;
+    line-height: 1.5;
+}
+
+/* Toggle Switch */
+.auth-toggle {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 4px;
+    border-radius: 12px;
+    display: flex;
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-sec);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    z-index: 2;
+}
+
+.toggle-btn.active {
+    color: var(--text-main);
+    background-color: rgba(255, 255, 255, 0.05);
+    /* Slight highlight */
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Form Styles */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.input-label {
+    color: var(--text-main);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-sec);
+    pointer-events: none;
+}
+
+.auth-input {
+    width: 100%;
+    padding: 0.875rem 1rem 0.875rem 3rem;
+    /* Space for icon */
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.auth-input:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background-color: var(--bg-card-hover);
+}
+
+.toggle-password {
+    position: absolute;
+    right: 1rem;
+    color: var(--text-sec);
+    cursor: pointer;
+    padding: 4px;
+}
+
+.forgot-password {
+    align-self: flex-end;
+    font-size: 0.875rem;
+    color: var(--color-primary);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.submit-btn {
+    background-color: var(--color-primary);
+    color: white;
+    padding: 1rem;
+    border-radius: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 0.5rem;
+    transition: background-color 0.2s;
+    box-shadow: 0 4px 12px rgba(65, 105, 255, 0.3);
+}
+
+.submit-btn:hover {
+    background-color: var(--color-primary-hover);
+}
+
+/* Divider */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-sec);
+    font-size: 0.875rem;
+    margin: 0.5rem 0;
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+/* Social Buttons */
+.social-buttons {
+    display: grid;
+    grid-template-columns: 1fr;
+    /* Only Google as requested for now, or 1fr 1fr if both */
+    gap: 1rem;
+}
+
+.social-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.875rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.social-btn:hover {
+    background-color: var(--bg-card-hover);
+}
+
+/* Footer */
+.auth-footer {
+    text-align: center;
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.4);
+    margin-top: 1rem;
+    line-height: 1.5;
+    max-width: 320px;
+    align-self: center;
+}
+
+.auth-footer a {
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: underline;
+}

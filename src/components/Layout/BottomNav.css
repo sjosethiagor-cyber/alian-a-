@@ -1,0 +1,40 @@
+/* BottomNav.css */
+.bottom-nav {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 0.5rem;
+}
+
+.nav-link-mobile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: var(--text-sec);
+    font-size: 0.75rem;
+    width: 64px;
+    height: 100%;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.nav-link-mobile svg {
+    width: 22px;
+    height: 22px;
+    stroke-width: 2px;
+    transition: all 0.2s;
+}
+
+.nav-link-mobile.active {
+    color: var(--color-primary);
+}
+
+.nav-link-mobile.active svg {
+    stroke: var(--color-primary);
+    transform: translateY(-2px);
+}
+
+/* Optional: Active indicator bubble or dot if desired, but text color change is clean */

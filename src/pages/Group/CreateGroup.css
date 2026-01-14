@@ -1,0 +1,256 @@
+/* CreateGroup.css Redesign */
+@import './EnterGroup.css';
+
+.header-title {
+    flex: 1;
+    text-align: center;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-right: 32px;
+    /* Balance back btn */
+}
+
+.create-group-content {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    padding-bottom: 80px;
+    /* Space for bottom button */
+}
+
+/* Photo Upload */
+.photo-upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.photo-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.03);
+    position: relative;
+    color: var(--text-sec);
+}
+
+.edit-photo-btn {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 3px solid var(--bg-main);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.photo-hint {
+    color: var(--color-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+/* Form Sections */
+.form-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.section-label-lg {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.group-name-input {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+    font-size: 1rem;
+    color: var(--text-main);
+    width: 100%;
+}
+
+.group-name-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.field-hint {
+    font-size: 0.85rem;
+    color: var(--text-sec);
+    line-height: 1.4;
+}
+
+.divider-line {
+    height: 1px;
+    background-color: var(--border-color);
+    width: 100%;
+}
+
+/* Members Section */
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.member-count-badge {
+    background-color: rgba(65, 105, 255, 0.1);
+    color: var(--color-primary);
+    font-size: 0.8rem;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.members-list-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 0.5rem;
+}
+
+.member-row {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    gap: 1rem;
+}
+
+.member-avatar-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: rgba(65, 105, 255, 0.2);
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.member-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.member-name {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.member-role {
+    font-size: 0.8rem;
+    color: var(--text-sec);
+}
+
+.status-check {
+    color: var(--status-success);
+}
+
+/* Invite Row */
+.invite-row {
+    display: flex;
+    gap: 12px;
+    margin-top: 0.5rem;
+}
+
+.input-wrapper-icon {
+    flex: 1;
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    top: 50%;
+    left: 1rem;
+    transform: translateY(-50%);
+    color: var(--text-sec);
+}
+
+.invite-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-main);
+}
+
+.add-invite-btn {
+    width: 54px;
+    background-color: rgba(65, 105, 255, 0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.add-invite-btn:hover {
+    background-color: rgba(65, 105, 255, 0.2);
+}
+
+.copy-link-btn {
+    width: 100%;
+    padding: 1rem;
+    border: 1px dashed var(--color-primary);
+    color: var(--color-primary);
+    background-color: transparent;
+    border-radius: 16px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 1rem;
+    cursor: pointer;
+}
+
+/* Bottom Actions */
+.bottom-action-container {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem;
+    background-color: var(--bg-main);
+    border-top: 1px solid var(--border-color);
+    z-index: 100;
+}
+
+.create-action-btn {
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 1rem;
+    background-color: var(--color-primary);
+    color: white;
+    border-radius: 14px;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 12px rgba(65, 105, 255, 0.3);
+}

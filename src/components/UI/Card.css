@@ -1,0 +1,31 @@
+.ui-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-card);
+    padding: 1.5rem;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ui-card.hover-effect:hover {
+    transform: translateY(-4px);
+    border-color: rgba(65, 105, 255, 0.5);
+    /* Primary with opacity */
+    box-shadow: 0 12px 24px -10px rgba(0, 0, 0, 0.3);
+}
+
+.ui-card h3 {
+    font-size: 0.875rem;
+    color: var(--text-sec);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ui-card .value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
