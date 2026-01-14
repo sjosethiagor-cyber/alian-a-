@@ -7,6 +7,7 @@ import Finances from './pages/Finances';
 import Profile from './pages/Profile';
 import Welcome from './pages/Welcome';
 import Auth from './pages/Auth';
+import ForgotPassword from './pages/ForgotPassword';
 import GroupMenu from './pages/Group/GroupMenu';
 import EnterGroup from './pages/Group/EnterGroup';
 import CreateGroup from './pages/Group/CreateGroup';
@@ -59,6 +60,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Welcome />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
           <Route path="/onboarding" element={
             <SimpleProtectedRoute>
@@ -73,7 +75,7 @@ function App() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="rotina" element={<RoutinePage />} /> {/* Use the new component */}
-            <Route path="atividades" element={<Activities />} />
+            <Route path="atividades/:tab?" element={<Activities />} />
             <Route path="financas" element={<Finances />} />
             <Route path="perfil" element={<Profile />} />
 

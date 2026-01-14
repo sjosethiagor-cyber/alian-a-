@@ -1,29 +1,31 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import {
-    ArrowLeft, ShoppingCart, Plane, Plus, Trash2,
-    Film, Music, Headphones, BookOpen, Heart
+    ArrowLeft, Plus, Trash2,
+    Film, Music, Headphones, BookOpen, Heart, BookHeart
 } from 'lucide-react';
-import { activityService, type ActivityItem } from '../services/activityService';
+import { activityService, type ActivityItem } from '../../services/activityService';
+import AddActivityModal from './components/AddActivityModal';
 import './Activities.css';
 
-type ActivityType = 'shopping' | 'travel' | 'movies' | 'music' | 'podcast' | 'bible' | 'couple';
+type ActivityType = 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple';
 
 export default function Activities() {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<ActivityType>('shopping');
+    const { tab } = useParams<{ tab: ActivityType }>();
+    const [activeTab, setActiveTab] = useState<ActivityType>(tab || 'movies');
     const [items, setItems] = useState<ActivityItem[]>([]);
     const [loading, setLoading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Configuração das Abas
     const tabs = [
-        { id: 'shopping', label: 'Compras', icon: ShoppingCart },
-        { id: 'travel', label: 'Viagem', icon: Plane },
-        { id: 'movies', label: 'Filmes/Séries', icon: Film },
+        { id: 'movies', label: 'Filmes e Séries', icon: Film },
         { id: 'music', label: 'Músicas', icon: Music },
-        { id: 'podcast', label: 'Podcasts', icon: Headphones },
         { id: 'bible', label: 'Estudo Bíblico', icon: BookOpen },
-        { id: 'couple', label: 'Lazer a Dois', icon: Heart },
+        { id: 'prayer', label: 'Estudo para Oração', icon: BookHeart }, // New Icon needed or reuse
+        { id: 'podcast', label: 'Podcast', icon: Headphones },
+        { id: 'couple', label: 'Lazer', icon: Heart },
     ];
 
     const loadItems = async () => {
@@ -37,6 +39,12 @@ export default function Activities() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (tab && tab !== activeTab) {
+            setActiveTab(tab as ActivityType);
+        }
+    }, [tab]);
 
     useEffect(() => {
         loadItems();
@@ -68,21 +76,6 @@ export default function Activities() {
         }
     };
 
-    const addItem = async () => {
-        const itemName = window.prompt(`Adicionar item em ${tabs.find(t => t.id === activeTab)?.label}:`);
-        if (!itemName) return;
-
-        const meta = window.prompt('Algum detalhe extra? (Quantidade, Autor, etc) - Opcional');
-
-        try {
-            await activityService.addItem(activeTab, itemName, meta || undefined);
-            loadItems();
-        } catch (error) {
-            console.error(error);
-            alert('Erro ao adicionar');
-        }
-    };
-
     return (
         <div className="page-container">
             <header className="page-header">
@@ -93,7 +86,7 @@ export default function Activities() {
                     <h1 className="page-title">Atividades</h1>
                     <span className="page-subtitle">Listas Compartilhadas</span>
                 </div>
-                <button className="add-list-btn-header" onClick={addItem}>
+                <button className="add-list-btn-header" onClick={() => setIsModalOpen(true)}>
                     <Plus size={20} />
                 </button>
             </header>
@@ -104,7 +97,7 @@ export default function Activities() {
                     <button
                         key={tab.id}
                         className={`tab-pill ${activeTab === tab.id ? 'active' : ''}`}
-                        onClick={() => setActiveTab(tab.id as ActivityType)}
+                        onClick={() => navigate(`/app/atividades/${tab.id}`)}
                     >
                         <tab.icon size={16} />
                         {tab.label}
@@ -118,7 +111,7 @@ export default function Activities() {
                     <span>
                         {items.filter(i => !i.completed).length} pendentes em {tabs.find(t => t.id === activeTab)?.label}
                     </span>
-                    <button className="add-btn-small" onClick={addItem}>
+                    <button className="add-btn-small" onClick={() => setIsModalOpen(true)}>
                         <Plus size={16} /> Adicionar Item
                     </button>
                 </div>
@@ -144,6 +137,13 @@ export default function Activities() {
                     ))
                 )}
             </div>
+
+            <AddActivityModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSuccess={loadItems}
+                activeTab={activeTab}
+            />
         </div>
     );
 }

@@ -118,7 +118,7 @@ export default function Auth() {
                     </div>
 
                     {isLogin && (
-                        <div className="forgot-password">
+                        <div className="forgot-password" onClick={() => navigate('/forgot-password')}>
                             Esqueceu a senha?
                         </div>
                     )}
