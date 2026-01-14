@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Infinity } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Infinity as InfinityIcon } from 'lucide-react';
 import './Auth.css';
 
 export default function Auth() {
@@ -8,10 +9,36 @@ export default function Auth() {
     const [isLogin, setIsLogin] = useState(true);
     const [showPassword, setShowPassword] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [loading, setLoading] = useState(false);
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Simulate auth
-        navigate('/app');
+        setLoading(true);
+
+        try {
+            if (isLogin) {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (error) throw error;
+                navigate('/app');
+            } else {
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                });
+                if (error) throw error;
+                alert('Cadastro realizado! Verifique seu email ou faça login.');
+                setIsLogin(true);
+            }
+        } catch (error: any) {
+            alert(error.message || 'Erro ao autenticar');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -20,7 +47,7 @@ export default function Auth() {
                 {/* Header */}
                 <div className="auth-header">
                     <div className="logo-icon-container">
-                        <Infinity size={32} strokeWidth={2.5} />
+                        <InfinityIcon size={32} strokeWidth={2.5} />
                     </div>
                     <h2 className="app-name">Aliança</h2>
                     <span className="tagline">Conecte-se e sincronize.</span>
@@ -62,6 +89,8 @@ export default function Auth() {
                                 placeholder="seu@email.com"
                                 className="auth-input"
                                 required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                     </div>
@@ -75,6 +104,8 @@ export default function Auth() {
                                 className="auth-input"
                                 placeholder="••••••••"
                                 required
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                             <button
                                 type="button"
@@ -92,8 +123,12 @@ export default function Auth() {
                         </div>
                     )}
 
-                    <button type="submit" className="submit-btn">
-                        {isLogin ? 'Entrar' : 'Criar Conta'} <ArrowRight size={20} />
+                    <button type="submit" className="submit-btn" disabled={loading}>
+                        {loading
+                            ? 'Carregando...'
+                            : (isLogin ? 'Entrar' : 'Criar Conta')
+                        }
+                        {!loading && <ArrowRight size={20} />}
                     </button>
                 </form>
 

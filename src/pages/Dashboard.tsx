@@ -1,42 +1,103 @@
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import {
     CheckCircle, ShoppingCart, DollarSign, ListTodo, Plus, MapPin, Calendar
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { groupService, type Group } from '../services/groupService';
+import { routineService } from '../services/routineService';
+import { activityService } from '../services/activityService';
 import './Dashboard.css';
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    const { user, profile } = useAuth();
+    const [group, setGroup] = useState<Group | null>(null);
+    const [pendingTasks, setPendingTasks] = useState(0);
+    const [shoppingItems, setShoppingItems] = useState(0);
+    const [loading, setLoading] = useState(true);
 
-    const days = [
-        { day: 'SEG', num: '21' },
-        { day: 'TER', num: '22' },
-        { day: 'QUA', num: '23' },
-        { day: 'QUI', num: '24', active: true },
-        { day: 'SEX', num: '25' },
-        { day: 'SÁB', num: '26' },
-        { day: 'DOM', num: '27' },
-    ];
+    const loadDashboardData = async () => {
+        try {
+            // 1. Load Group Details (for partner name)
+            const currentGroup = await groupService.getUserGroup();
+            if (currentGroup) {
+                const details = await groupService.getGroupDetails(currentGroup.id);
+                setGroup(details);
+            }
+
+            // 2. Load Pending Tasks
+            if (currentGroup) {
+                const tasks = await routineService.getGroupRoutines(currentGroup.id);
+                // Calculate pending for today
+                const todayStr = new Date().toISOString().split('T')[0];
+                const completions = await routineService.getCompletions(tasks.map(t => t.id), todayStr);
+                const userCompletions = completions.filter(c => c.user_id === user?.id);
+                const completedSet = new Set(userCompletions.map(c => c.routine_id));
+                setPendingTasks(tasks.length - completedSet.size);
+            }
+
+            // 3. Load Shopping Items
+            const items = await activityService.getItems('shopping');
+            setShoppingItems(items.filter(i => !i.completed).length);
+
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        loadDashboardData();
+    }, []);
+
+    // Date Logic
+    const today = new Date();
+    const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'short' };
+    const dateString = today.toLocaleDateString('pt-BR', dateOptions).toUpperCase();
+
+    // Generate week days
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(today.getDate() - today.getDay() + i); // Start from Sunday? Or Monday? Let's center around today or just show current week
+        // Let's just show -3 to +3 days
+        return d;
+    }).map((_, i) => {
+        // const isToday = d.toDateString() === today.toDateString(); // Removed unused
+        const start = new Date(today);
+        start.setDate(today.getDate() - 3 + i);
+        return {
+            day: start.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', ''),
+            num: start.getDate(),
+            active: i === 3
+        };
+    });
+
+    // Partner Name Logic
+    const partner = group?.members?.find(m => m.user_id !== user?.id);
+    const partnerName = partner?.profile?.name || 'Seu Amor';
 
     const categories = [
         {
             id: 'tasks',
             icon: CheckCircle,
             label: 'Tarefas',
-            count: '3 pendentes',
+            count: `${pendingTasks} pendentes`,
             sub: 'Casa & Organização',
             color: '#4169ff', // Blue
             bg: 'rgba(65, 105, 255, 0.1)',
-            path: 'rotina'
+            path: '/app/rotina'
         },
         {
             id: 'shopping',
             icon: ShoppingCart,
             label: 'Compras',
-            count: '12 itens',
+            count: `${shoppingItems} itens`,
             sub: 'Mercado Semanal',
             color: '#10b981', // Green
             bg: 'rgba(16, 185, 129, 0.1)',
-            path: 'atividades'
+            path: '/app/atividades'
         },
         {
             id: 'finance',
@@ -46,43 +107,19 @@ export default function Dashboard() {
             sub: 'Contas & Metas',
             color: '#8b5cf6', // Purple
             bg: 'rgba(139, 92, 246, 0.1)',
-            btnText: 'Viagem', // Tag instead of count
-            path: 'financas' // assuming route
+            btnText: 'Acessar',
+            path: '/app/financas'
         },
         {
             id: 'checklists',
             icon: ListTodo,
-            label: 'Checklists',
+            label: 'Atividades',
             count: '',
-            sub: 'Listas Rápidas',
+            sub: 'Listas Gerais',
             color: '#f59e0b', // Orange
             bg: 'rgba(245, 158, 11, 0.1)',
-            btnText: 'Viagem',
-            path: 'atividades'
-        },
-    ];
-
-    const activities = [
-        {
-            user: 'Ana',
-            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-            action: 'completou',
-            target: 'Pagar conta de luz',
-            time: '10min'
-        },
-        {
-            user: 'Ana',
-            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop',
-            action: 'adicionou',
-            target: 'Comprar leite à lista',
-            time: '2h'
-        },
-        {
-            user: 'Você',
-            avatar: 'user_me',
-            action: 'pagou',
-            target: 'Aluguel',
-            time: '1d'
+            btnText: 'Ver',
+            path: '/app/atividades'
         },
     ];
 
@@ -91,23 +128,41 @@ export default function Dashboard() {
             {/* Header Section */}
             <header className="home-header">
                 <div>
-                    <span className="header-date">QUINTA-FEIRA, 24 OUT</span>
+                    <span className="header-date">{dateString}</span>
                     <h1 className="header-greeting">
-                        Bom dia,<br />
-                        <span className="text-highlight">Lucas & Ana</span>
+                        {loading ? 'Carregando...' : (
+                            <>
+                                Bom dia,<br />
+                                <span className="text-highlight">
+                                    {profile?.name ? profile.name.split(' ')[0] : 'Você'} & {partnerName.split(' ')[0]}
+                                </span>
+                            </>
+                        )}
                     </h1>
                 </div>
                 <div className="couple-avatars">
-                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop" alt="Ana" className="avatar avatar-1" />
-                    <img src="https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=100&h=100&fit=crop" alt="Lucas" className="avatar avatar-2" />
+                    <div className="avatar avatar-1">
+                        {profile?.avatar_url ? (
+                            <img src={profile.avatar_url} alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                            (profile?.name?.[0] || 'V').toUpperCase()
+                        )}
+                    </div>
+                    <div className="avatar avatar-2">
+                        {partner?.profile?.avatar_url ? (
+                            <img src={partner.profile.avatar_url} alt="Partner" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+                        ) : (
+                            (partnerName?.[0] || '?').toUpperCase()
+                        )}
+                    </div>
                 </div>
             </header>
 
             {/* Date Strip */}
             <div className="date-strip-container">
                 <div className="date-strip">
-                    {days.map((d) => (
-                        <div key={d.day} className={`date-item ${d.active ? 'active' : ''}`}>
+                    {weekDays.map((d, idx) => (
+                        <div key={idx} className={`date-item ${d.active ? 'active' : ''}`}>
                             <span className="day-label">{d.day}</span>
                             <span className="day-number">{d.num}</span>
                             {d.active && <div className="active-dot" />}
@@ -129,10 +184,10 @@ export default function Dashboard() {
                             </button>
                         </div>
                         <div className="highlight-bottom">
-                            <h2 className="highlight-title">Jantar de Aniversário</h2>
+                            <h2 className="highlight-title">Jantar Especial</h2>
                             <div className="highlight-location">
                                 <MapPin size={16} />
-                                <span>Restaurante Le Jardin</span>
+                                <span>Casa</span>
                             </div>
                         </div>
                     </div>
@@ -152,10 +207,10 @@ export default function Dashboard() {
                                 <div className="category-icon" style={{ color: cat.color, backgroundColor: cat.bg }}>
                                     <cat.icon size={22} />
                                 </div>
-                                {cat.id === 'finance' || cat.id === 'checklists' ? (
-                                    <span className="category-tag">Viagem</span>
-                                ) : (
+                                {cat.count ? (
                                     <span className="category-count">{cat.count}</span>
+                                ) : (
+                                    <span className="category-tag">{cat.btnText}</span>
                                 )}
                             </div>
                             <div className="category-info">
@@ -167,32 +222,16 @@ export default function Dashboard() {
                 </div>
             </section>
 
-            {/* Recent Activity */}
+            {/* Activity Feed Placeholder - can be real later */}
             <section className="section-activity">
                 <h3 className="section-title">Atividade Recente</h3>
                 <div className="activity-list">
-                    {activities.map((act, idx) => (
-                        <div key={idx} className="activity-row">
-                            <div className="activity-avatar-container">
-                                {act.user === 'Você' ? (
-                                    <div className="avatar-placeholder">L</div>
-                                ) : (
-                                    <img src={act.avatar} alt={act.user} className="activity-avatar" />
-                                )}
-                            </div>
-                            <div className="activity-details">
-                                <p className="activity-text">
-                                    <span className="activity-user">{act.user}</span> {act.action} <span className="activity-target">{act.target}</span>
-                                </p>
-                            </div>
-                            <span className="activity-time">{act.time}</span>
-                        </div>
-                    ))}
+                    <p style={{ opacity: 0.6, fontSize: '0.9rem' }}>Nenhuma atividade recente encontrada.</p>
                 </div>
             </section>
 
             {/* FAB */}
-            <button className="fab-add">
+            <button className="fab-add" onClick={() => navigate('/app/atividades')}>
                 <Plus size={28} />
             </button>
         </div>

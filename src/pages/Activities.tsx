@@ -1,23 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     ArrowLeft, ShoppingCart, Plane, Plus, Trash2,
     Film, Music, Headphones, BookOpen, Heart
 } from 'lucide-react';
+import { activityService, type ActivityItem } from '../services/activityService';
 import './Activities.css';
 
 type ActivityType = 'shopping' | 'travel' | 'movies' | 'music' | 'podcast' | 'bible' | 'couple';
 
-interface ActivityItem {
-    id: number;
-    name: string;
-    completed: boolean;
-    meta?: string; // Quantity, Author, Platform, etc.
-}
-
 export default function Activities() {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<ActivityType>('shopping');
+    const [items, setItems] = useState<ActivityItem[]>([]);
+    const [loading, setLoading] = useState(false);
 
     // Configuração das Abas
     const tabs = [
@@ -30,76 +26,61 @@ export default function Activities() {
         { id: 'couple', label: 'Lazer a Dois', icon: Heart },
     ];
 
-    // Dados Mockados
-    const [lists, setLists] = useState<Record<ActivityType, ActivityItem[]>>({
-        shopping: [
-            { id: 1, name: 'Leite Desnatado', completed: false, meta: '2L' },
-            { id: 2, name: 'Pão Integral', completed: true, meta: '1 pct' },
-            { id: 3, name: 'Maçãs', completed: false, meta: '6 un' },
-            { id: 4, name: 'Café Premium', completed: false, meta: '500g' },
-        ],
-        travel: [
-            { id: 1, name: 'Passaportes', completed: true, meta: 'Docs' },
-            { id: 2, name: 'Roupas de Frio', completed: false, meta: 'Mala' },
-            { id: 3, name: 'Carregadores', completed: false, meta: 'Eletrônicos' },
-        ],
-        movies: [
-            { id: 1, name: 'Interestelar', completed: false, meta: 'Netflix' },
-            { id: 2, name: 'Breaking Bad', completed: true, meta: 'S05E14' },
-            { id: 3, name: 'O Dilema das Redes', completed: false, meta: 'Doc' },
-        ],
-        music: [
-            { id: 1, name: 'Worship Mix 2024', completed: false, meta: 'Spotify' },
-            { id: 2, name: 'Lofi Study', completed: false, meta: 'Youtube' },
-        ],
-        podcast: [
-            { id: 1, name: 'Primocast - Finanças', completed: false, meta: 'Ep. 142' },
-            { id: 2, name: 'DevNaEstrada', completed: true, meta: 'Ep. 300' },
-        ],
-        bible: [
-            { id: 1, name: 'João 3:16', completed: true, meta: 'Memorizar' },
-            { id: 2, name: 'Salmos 91', completed: false, meta: 'Devocional' },
-            { id: 3, name: 'Romanos 8', completed: false, meta: 'Estudo' },
-        ],
-        couple: [
-            { id: 1, name: 'Jantar no Terraço', completed: false, meta: 'Sábado' },
-            { id: 2, name: 'Cinema VIP', completed: false, meta: 'Domingo' },
-            { id: 3, name: 'Piquenique no Parque', completed: true, meta: 'Feito' },
-        ]
-    });
-
-    const toggleItem = (type: ActivityType, id: number) => {
-        setLists({
-            ...lists,
-            [type]: lists[type].map(i => i.id === id ? { ...i, completed: !i.completed } : i)
-        });
+    const loadItems = async () => {
+        setLoading(true);
+        try {
+            const data = await activityService.getItems(activeTab);
+            setItems(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const deleteItem = (type: ActivityType, id: number, e: React.MouseEvent) => {
+    useEffect(() => {
+        loadItems();
+    }, [activeTab]);
+
+    const toggleItem = async (id: string, currentCompleted: boolean) => {
+        // Optimistic
+        setItems(items.map(i => i.id === id ? { ...i, completed: !i.completed } : i));
+
+        try {
+            await activityService.toggleItem(id, currentCompleted);
+        } catch (error) {
+            console.error(error);
+            // Revert
+            setItems(items.map(i => i.id === id ? { ...i, completed: currentCompleted } : i));
+        }
+    };
+
+    const deleteItem = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        setLists({
-            ...lists,
-            [type]: lists[type].filter(i => i.id !== id)
-        });
+        if (confirm('Excluir item?')) {
+            try {
+                await activityService.deleteItem(id);
+                loadItems(); // Reload fully to be safe
+            } catch (error) {
+                console.error(error);
+                alert('Erro ao excluir');
+            }
+        }
     };
 
-    const getActiveList = () => lists[activeTab];
-
-    const addItem = () => {
+    const addItem = async () => {
         const itemName = window.prompt(`Adicionar item em ${tabs.find(t => t.id === activeTab)?.label}:`);
         if (!itemName) return;
 
-        const newItem: ActivityItem = {
-            id: Date.now(),
-            name: itemName,
-            completed: false,
-            meta: '' // Optional logic for meta later
-        };
+        const meta = window.prompt('Algum detalhe extra? (Quantidade, Autor, etc) - Opcional');
 
-        setLists({
-            ...lists,
-            [activeTab]: [...lists[activeTab], newItem]
-        });
+        try {
+            await activityService.addItem(activeTab, itemName, meta || undefined);
+            loadItems();
+        } catch (error) {
+            console.error(error);
+            alert('Erro ao adicionar');
+        }
     };
 
     return (
@@ -135,26 +116,28 @@ export default function Activities() {
             <div className="activities-list">
                 <div className="list-summary">
                     <span>
-                        {getActiveList().filter(i => !i.completed).length} pendentes em {tabs.find(t => t.id === activeTab)?.label}
+                        {items.filter(i => !i.completed).length} pendentes em {tabs.find(t => t.id === activeTab)?.label}
                     </span>
                     <button className="add-btn-small" onClick={addItem}>
                         <Plus size={16} /> Adicionar Item
                     </button>
                 </div>
 
-                {getActiveList().length === 0 ? (
+                {loading ? (
+                    <div className="loading-state">Carregando...</div>
+                ) : items.length === 0 ? (
                     <div className="empty-state">
                         <p>Nenhum item nesta lista.</p>
                     </div>
                 ) : (
-                    getActiveList().map(item => (
-                        <div key={item.id} className="activity-card" onClick={() => toggleItem(activeTab, item.id)}>
+                    items.map(item => (
+                        <div key={item.id} className="activity-card" onClick={() => toggleItem(item.id, item.completed)}>
                             <div className={`checkbox-custom ${item.completed ? 'checked' : ''}`} />
                             <div className="activity-info">
                                 <span className={`activity-name ${item.completed ? 'completed-text' : ''}`}>{item.name}</span>
                                 {item.meta && <span className="activity-meta">{item.meta}</span>}
                             </div>
-                            <button className="delete-btn" onClick={(e) => deleteItem(activeTab, item.id, e)}>
+                            <button className="delete-btn" onClick={(e) => deleteItem(item.id, e)}>
                                 <Trash2 size={16} />
                             </button>
                         </div>

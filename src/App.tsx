@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import Dashboard from './pages/Dashboard';
-import Routine from './pages/Routine';
+import RoutinePage from './pages/Routine/RoutinePage'; // Updated import
 import Activities from './pages/Activities';
 import Finances from './pages/Finances';
 import Profile from './pages/Profile';
@@ -17,39 +17,85 @@ import HelpSupport from './pages/HelpSupport';
 import About from './pages/About';
 import './index.css';
 
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+
+function SimpleProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <div>Carregando...</div>;
+  if (!user) return <Navigate to="/auth" replace />;
+
+  return <>{children}</>;
+}
+
+import Onboarding from './pages/Onboarding';
+
+function PrivateRoute({ children }: { children: React.ReactNode }) {
+  const { user, profile, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        Carregando...
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  if (!profile && window.location.pathname !== '/onboarding') {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <>{children}</>;
+}
+
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Welcome />} />
-        <Route path="/auth" element={<Auth />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Welcome />} />
+          <Route path="/auth" element={<Auth />} />
 
-        <Route path="/app" element={<Layout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="rotina" element={<Routine />} />
-          <Route path="atividades" element={<Activities />} />
-          <Route path="financas" element={<Finances />} />
-          <Route path="perfil" element={<Profile />} />
+          <Route path="/onboarding" element={
+            <SimpleProtectedRoute>
+              <Onboarding />
+            </SimpleProtectedRoute>
+          } />
 
-          {/* Group Routes */}
-          <Route path="perfil/grupo" element={<GroupMenu />} />
-          <Route path="perfil/grupo/entrar" element={<EnterGroup />} />
-          <Route path="perfil/grupo/criar" element={<CreateGroup />} />
-          <Route path="perfil/grupo/gerenciar" element={<ManageGroup />} />
+          <Route path="/app" element={
+            <PrivateRoute>
+              <Layout />
+            </PrivateRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="rotina" element={<RoutinePage />} /> {/* Use the new component */}
+            <Route path="atividades" element={<Activities />} />
+            <Route path="financas" element={<Finances />} />
+            <Route path="perfil" element={<Profile />} />
 
-          {/* Settings Routes */}
-          <Route path="perfil/notificacoes" element={<Notifications />} />
-          <Route path="perfil/privacidade" element={<Privacy />} />
-          <Route path="perfil/suporte" element={<HelpSupport />} />
-          <Route path="perfil/sobre" element={<About />} />
+            {/* Group Routes */}
+            <Route path="perfil/grupo" element={<GroupMenu />} />
+            <Route path="perfil/grupo/entrar" element={<EnterGroup />} />
+            <Route path="perfil/grupo/criar" element={<CreateGroup />} />
+            <Route path="perfil/grupo/gerenciar" element={<ManageGroup />} />
+
+            {/* Settings Routes */}
+            <Route path="perfil/notificacoes" element={<Notifications />} />
+            <Route path="perfil/privacidade" element={<Privacy />} />
+            <Route path="perfil/suporte" element={<HelpSupport />} />
+            <Route path="perfil/sobre" element={<About />} />
 
 
-        </Route>
+          </Route>
 
-        {/* Catches unknown routes and redirects to Welcome */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

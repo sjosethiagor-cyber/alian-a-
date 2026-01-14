@@ -1,26 +1,34 @@
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Link as LinkIcon, HelpCircle } from 'lucide-react';
-import { useState, useRef } from 'react';
-import { groupService, type Group } from '../../services/groupService'; // Added type import
+import { useState, useRef, useEffect } from 'react';
+import { groupService, type Group } from '../../services/groupService';
 import JoinConfirmationModal from '../../components/UI/JoinConfirmationModal';
 import './EnterGroup.css';
 
 export default function EnterGroup() {
     const navigate = useNavigate();
     const [code, setCode] = useState(['', '', '', '', '', '']);
-    const [foundGroup, setFoundGroup] = useState<Group | null>(null); // State for modal
+    const [foundGroup, setFoundGroup] = useState<Group | null>(null);
     const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+    useEffect(() => {
+        const checkGroup = async () => {
+            const group = await groupService.getUserGroup();
+            if (group) {
+                navigate('/app/perfil/grupo');
+            }
+        };
+        checkGroup();
+    }, [navigate]);
 
     const handleChange = (index: number, value: string) => {
         if (value.length > 1) {
-            // Paste handling simplistic
             value = value[0];
         }
         const newCode = [...code];
         newCode[index] = value;
         setCode(newCode);
 
-        // Auto-focus next
         if (value && index < 5) {
             inputsRef.current[index + 1]?.focus();
         }
@@ -32,7 +40,7 @@ export default function EnterGroup() {
         }
     };
 
-    const handleJoin = () => {
+    const handleJoin = async () => {
         const fullCode = code.join('');
 
         if (fullCode.length < 6) {
@@ -40,29 +48,31 @@ export default function EnterGroup() {
             return;
         }
 
-        // 1. Verify existence first (Preview)
-        const validGroup = groupService.getGroupByCode(fullCode);
-
-        if (validGroup) {
-            setFoundGroup(validGroup); // TRIGGERS MODAL
-        } else {
-            alert("Código inválido ou grupo não encontrado.");
-            setCode(['', '', '', '', '', '']);
+        try {
+            const validGroup = await groupService.getGroupByCode(fullCode);
+            if (validGroup) {
+                setFoundGroup(validGroup);
+            } else {
+                alert("Código inválido ou grupo não encontrado.");
+                setCode(['', '', '', '', '', '']);
+            }
+        } catch (error) {
+            console.error(error);
+            alert("Erro ao buscar grupo.");
         }
     };
 
-    const confirmJoin = () => {
+    const confirmJoin = async () => {
         if (!foundGroup) return;
 
-        const result = groupService.joinGroup(foundGroup.code);
-        if (result.success) {
+        try {
+            await groupService.joinGroup(foundGroup.code);
             navigate('/app/perfil/grupo');
-        } else {
-            alert(result.message);
+        } catch (error: any) {
+            alert(error.message || "Erro ao entrar no grupo.");
         }
         setFoundGroup(null);
     };
-
 
     return (
         <div className="group-screen-container">
@@ -75,7 +85,6 @@ export default function EnterGroup() {
                 />
             )}
 
-            {/* Header */}
             <header className="group-header">
                 <button className="back-btn" onClick={() => navigate(-1)}>
                     <ArrowLeft size={24} />

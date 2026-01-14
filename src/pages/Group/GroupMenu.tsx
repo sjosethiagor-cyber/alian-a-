@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, PlusCircle, Link as LinkIcon, ChevronRight, LogOut, Copy, Home } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { ArrowLeft, PlusCircle, Link as LinkIcon, ChevronRight, LogOut, Copy, Home, Eye, EyeOff } from 'lucide-react';
+import { useEffect, useState, useCallback } from 'react';
 import { groupService, type Group } from '../../services/groupService';
 import './GroupMenu.css';
 import './GroupInfo.css';
@@ -10,19 +10,29 @@ export default function GroupMenu() {
     const navigate = useNavigate();
     const [activeGroup, setActiveGroup] = useState<Group | null>(null);
     const [showDetails, setShowDetails] = useState(false);
+    const [showCode, setShowCode] = useState(false);
+
+    const loadGroup = useCallback(async () => {
+        const group = await groupService.getUserGroup();
+        if (group) {
+            // Fetch full details including members
+            const fullGroup = await groupService.getGroupDetails(group.id);
+            setActiveGroup(fullGroup);
+            setShowDetails(true); // Auto-show details
+        } else {
+            setActiveGroup(null);
+        }
+    }, []);
 
     useEffect(() => {
         loadGroup();
-    }, []);
+    }, [loadGroup]);
 
-    const loadGroup = () => {
-        const group = groupService.getUserGroup();
-        setActiveGroup(group);
-    };
-
-    const handleLeave = () => {
+    const handleLeave = async () => {
         if (confirm('Tem certeza que deseja sair do grupo?')) {
-            groupService.leaveGroup();
+            if (activeGroup) {
+                await groupService.leaveGroup(activeGroup.id);
+            }
             setShowDetails(false);
             loadGroup();
         }
@@ -36,24 +46,24 @@ export default function GroupMenu() {
         }
     };
 
-    const handleJoinPartner = () => {
+    const handleJoinPartner = async () => {
         if (activeGroup) {
             if (!confirm('Você já está em um grupo. Deseja sair para entrar em outro?')) {
                 return;
             }
-            groupService.leaveGroup();
+            await groupService.leaveGroup(activeGroup.id);
             loadGroup();
             setShowDetails(false);
         }
         navigate('entrar');
     };
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (activeGroup) {
             if (!confirm('Você já está em um grupo. Deseja sair para criar um novo?')) {
                 return;
             }
-            groupService.leaveGroup();
+            await groupService.leaveGroup(activeGroup.id);
             loadGroup();
             setShowDetails(false);
         }
@@ -100,20 +110,32 @@ export default function GroupMenu() {
                             <div className="group-name-large">{activeGroup.name || 'Aliança'}</div>
                             <span className="label">Código do Grupo</span>
                             <div className="code-display">
-                                {activeGroup.code}
-                                <button className="copy-small" onClick={() => navigator.clipboard.writeText(activeGroup.code)}>
-                                    <Copy size={16} />
-                                </button>
+                                <span className="code-text" style={{ fontFamily: showCode ? 'monospace' : 'inherit', letterSpacing: showCode ? '2px' : '4px' }}>
+                                    {showCode ? activeGroup.code : '••••••'}
+                                </span>
+                                <div className="code-actions">
+                                    <button className="icon-btn-small" onClick={() => setShowCode(!showCode)}>
+                                        {showCode ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                    <button className="icon-btn-small" onClick={() => {
+                                        navigator.clipboard.writeText(activeGroup.code);
+                                        alert('Código copiado!');
+                                    }}>
+                                        <Copy size={18} />
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
                         <div className="members-list">
                             <span className="label">Membros</span>
-                            {activeGroup.members.map((member, i) => (
+                            {activeGroup.members?.map((member, i) => (
                                 <div key={i} className="member-item">
-                                    <div className="member-avatar">{member.name[0].toUpperCase()}</div>
+                                    <div className="member-avatar">
+                                        {(member.profile?.name?.[0] || '?').toUpperCase()}
+                                    </div>
                                     <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                        <span style={{ fontWeight: 500 }}>{member.name}</span>
+                                        <span style={{ fontWeight: 500 }}>{member.profile?.name || 'Membro'}</span>
                                         <span style={{ fontSize: '0.75rem', color: 'var(--text-sec)' }}>
                                             {member.role === 'admin' ? 'Admin' : 'Membro'}
                                         </span>

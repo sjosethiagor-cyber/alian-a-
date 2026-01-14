@@ -1,14 +1,27 @@
+import { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../contexts/AuthContext';
 import {
     Users, RefreshCw, Bell, Moon, Lock, HelpCircle, Info, ChevronRight, Pen
 } from 'lucide-react';
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../utils/cropImage';
 import './Profile.css';
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 
 export default function Profile() {
     const navigate = useNavigate();
+    const { user, profile, signOut, refreshProfile } = useAuth();
     const [syncEnabled, setSyncEnabled] = useState(true);
     const [isDarkMode, setIsDarkMode] = useState(true);
+    const [uploading, setUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Crop State
+    const [imageSrc, setImageSrc] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
 
     // Theme initialization
     useState(() => {
@@ -32,30 +45,116 @@ export default function Profile() {
         }
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         if (confirm('Deseja realmente sair da conta?')) {
-            localStorage.removeItem('user_token');
-            navigate('/');
+            try {
+                await signOut();
+                navigate('/');
+            } catch (error) {
+                console.error(error);
+            }
         }
     };
+
+    const onCropComplete = (_croppedArea: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    };
+
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.addEventListener('load', () => setImageSrc(reader.result as string));
+            reader.readAsDataURL(file);
+            // Reset input so same file can be selected again
+            e.target.value = '';
+        }
+    };
+
+    const handleSaveCrop = async () => {
+        if (!imageSrc || !croppedAreaPixels) return;
+        try {
+            setUploading(true);
+            const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
+
+            if (!croppedImageBlob) throw new Error('Falha ao recortar imagem');
+
+            const fileName = `${user?.id}/${Date.now()}.jpg`;
+
+            // Upload Blob
+            let { error: uploadError } = await supabase.storage
+                .from('avatars')
+                .upload(fileName, croppedImageBlob, {
+                    contentType: 'image/jpeg',
+                    upsert: true
+                });
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('avatars')
+                .getPublicUrl(fileName);
+
+            // Add timestamp/random query param to bypass cache
+            const publicUrlWithCacheBust = `${publicUrl}?t=${Date.now()}`;
+
+            const { error: updateError } = await supabase
+                .from('profiles')
+                .update({ avatar_url: publicUrlWithCacheBust })
+                .eq('id', user?.id);
+
+            if (updateError) throw updateError;
+
+            await refreshProfile();
+            setImageSrc(null); // Close modal
+        } catch (error: any) {
+            alert('Erro ao salvar avatar: ' + error.message);
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    const userInitials = profile?.name
+        ? profile.name.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()
+        : user?.email?.substring(0, 2).toUpperCase() || 'U';
 
     return (
         <div className="profile-container">
             {/* Header */}
             <section className="profile-header-section">
                 <div className="avatar-container">
-                    <img
-                        src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop"
-                        alt="Profile"
-                        className="profile-avatar"
-                    />
-                    <button className="edit-avatar-btn">
+                    {profile?.avatar_url ? (
+                        <img
+                            src={profile.avatar_url}
+                            alt="Profile"
+                            className="profile-avatar"
+                        />
+                    ) : (
+                        <div className="profile-avatar-placeholder">
+                            {userInitials}
+                        </div>
+                    )}
+
+                    <button
+                        className="edit-avatar-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploading}
+                    >
                         <Pen size={14} />
                     </button>
+                    <input
+                        type="file"
+                        id="single"
+                        hidden
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        disabled={uploading}
+                        ref={fileInputRef}
+                    />
                 </div>
-                <h2 className="profile-name">Ana Silva</h2>
-                <p className="profile-email">ana.silva@email.com</p>
-                <div className="premium-badge">Plano Premium</div>
+                <h2 className="profile-name">{profile?.name || 'Usuário'}</h2>
+                <p className="profile-email">{user?.email}</p>
+                <div className="premium-badge">Plano Gratuito</div>
             </section>
 
             {/* Sua Aliança */}
@@ -172,6 +271,32 @@ export default function Profile() {
             <p className="version-text">
                 Aliança Inc. © 2024. Todos os direitos reservados.
             </p>
+            {/* Crop Modal */}
+            {imageSrc && (
+                <div className="crop-modal-overlay">
+                    <div className="crop-container">
+                        <Cropper
+                            image={imageSrc}
+                            crop={crop}
+                            zoom={zoom}
+                            aspect={1}
+                            onCropChange={setCrop}
+                            onCropComplete={onCropComplete}
+                            onZoomChange={setZoom}
+                            cropShape="round"
+                            showGrid={false}
+                        />
+                    </div>
+                    <div className="crop-controls">
+                        <button className="crop-btn crop-cancel" onClick={() => setImageSrc(null)}>
+                            Cancelar
+                        </button>
+                        <button className="crop-btn crop-save" onClick={handleSaveCrop} disabled={uploading}>
+                            {uploading ? 'Salvando...' : 'Salvar Foto'}
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

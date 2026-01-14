@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Camera, Edit2, Mail, Plus, Link as LinkIcon, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Mail, Plus, Link as LinkIcon, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { groupService } from '../../services/groupService';
 import './CreateGroup.css';
@@ -11,20 +11,33 @@ export default function CreateGroup() {
 
     // Check if already in group
     useEffect(() => {
-        if (groupService.getUserGroup()) {
-            navigate('/app/perfil/grupo');
-        }
-    }, []);
+        const checkGroup = async () => {
+            const group = await groupService.getUserGroup();
+            if (group) {
+                navigate('/app/perfil/grupo');
+            }
+        };
+        checkGroup();
+    }, [navigate]);
 
-    const handleCreate = () => {
+    const handleCreate = async () => {
         if (!groupName.trim()) {
             alert('Por favor, dê um nome ao grupo.');
             return;
         }
 
-        groupService.createGroup(groupName);
-        // Redirect to menu to see the created group and code
-        navigate('/app/perfil/grupo');
+        try {
+            await groupService.createGroup({
+                name: groupName,
+                description: '',
+                theme: 'system'
+            });
+            // Redirect to menu to see the created group and code
+            navigate('/app/perfil/grupo');
+        } catch (error: any) {
+            console.error(error);
+            alert(`Erro ao criar grupo: ${error.message || error.error_description || 'Erro desconhecido'}`);
+        }
     };
 
     return (
@@ -38,15 +51,7 @@ export default function CreateGroup() {
 
             <div className="create-group-content">
                 {/* Photo Upload */}
-                <div className="photo-upload-section">
-                    <div className="photo-circle">
-                        <Camera size={32} className="camera-icon" />
-                        <button className="edit-photo-btn">
-                            <Edit2 size={14} />
-                        </button>
-                    </div>
-                    <p className="photo-hint">Toque para adicionar foto</p>
-                </div>
+
 
                 {/* Group Name Input */}
                 <div className="form-section">
