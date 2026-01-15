@@ -1,12 +1,11 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Calendar, CheckSquare, Wallet, User } from 'lucide-react';
+import { LayoutDashboard, Calendar, CheckSquare, User, BookOpen } from 'lucide-react';
 import './BottomNav.css';
 
 const NAV_ITEMS = [
-    { label: 'Início', path: '/app', icon: LayoutDashboard },
-    { label: 'Rotina', path: '/app/rotina', icon: Calendar },
-    { label: 'Tarefas', path: '/app/atividades', icon: CheckSquare },
-    { label: 'Caixa', path: '/app/financas', icon: Wallet },
+    { label: 'Agenda', path: '/app', icon: Calendar },
+    { label: 'Tarefas', path: '/app/rotina', icon: CheckSquare },
+    { label: 'Estudo', path: '/app/estudo', icon: BookOpen },
     { label: 'Perfil', path: '/app/perfil', icon: User },
 ];
 

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { X, Search, Loader2 } from 'lucide-react';
-import { activityService } from '../../../services/activityService';
+import { activityService, type ActivityItem } from '../../../services/activityService';
 import { tmdbService, type TmdbMovie, type WatchProvider } from '../../../services/tmdbService';
 
 interface AddActivityModalProps {
@@ -8,9 +9,11 @@ interface AddActivityModalProps {
     onClose: () => void;
     onSuccess: () => void;
     activeTab: 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple' | 'shopping' | 'travel';
+    initialData?: ActivityItem | null;
 }
 
-export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab }: AddActivityModalProps) {
+export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab, initialData }: AddActivityModalProps) {
+    const navigate = useNavigate();
     const [name, setName] = useState('');
     const [meta, setMeta] = useState('');
     // Movie specific states
@@ -19,6 +22,15 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
     const [rating, setRating] = useState('');
     const [posterUrl, setPosterUrl] = useState('');
     const [mediaType, setMediaType] = useState<'movie' | 'tv'>('movie');
+
+    // Bible specific states
+    // Bible specific states
+    const [studyType, setStudyType] = useState<'reading' | 'devotional' | 'prayer'>('reading');
+    const [link, setLink] = useState('');
+    const [channelName, setChannelName] = useState('');
+    const [coverUrl, setCoverUrl] = useState('');
+    const [scheduledDate, setScheduledDate] = useState('');
+    const [scheduledTime, setScheduledTime] = useState('');
 
     // Search states
     const [isSearching, setIsSearching] = useState(false);
@@ -37,19 +49,74 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
     // Reset form when modal opens/closes or tab changes
     useEffect(() => {
         if (isOpen) {
-            setName('');
-            setMeta('');
-            setYear(new Date().getFullYear().toString());
-            setSelectedGenres([]);
-            setRating('');
-            setRating('');
-            setPosterUrl('');
-            setProviders([]);
-            setMediaType('movie');
-            setSearchResults([]);
-            setShowResults(false);
+            if (initialData) {
+                // Populate form with existing data
+                setName(initialData.name);
+
+                // Parse meta
+                try {
+                    const parsed = JSON.parse(initialData.meta || '{}');
+                    if (activeTab === 'bible') {
+                        setMeta(parsed.description || (typeof parsed === 'string' ? parsed : ''));
+                        setStudyType(parsed.type || 'reading');
+                        setLink(parsed.link || '');
+                        setChannelName(parsed.channelName || '');
+                        setCoverUrl(parsed.coverUrl || '');
+                        setScheduledDate(parsed.scheduledDate || '');
+                        setScheduledTime(parsed.scheduledTime || '');
+                    } else if (activeTab === 'movies') {
+                        setYear(parsed.year || new Date().getFullYear().toString());
+                        setRating(parsed.rating || '');
+                        setPosterUrl(parsed.posterUrl || '');
+                        setSelectedGenres(parsed.genre ? parsed.genre.split(', ') : []);
+                        setProviders(parsed.providers || []);
+                        setMediaType(parsed.mediaType || 'movie');
+                        setScheduledDate(parsed.scheduledDate || '');
+                        setScheduledTime(parsed.scheduledTime || '');
+                    } else {
+                        setMeta(initialData.meta || '');
+                    }
+                } catch {
+                    setMeta(initialData.meta || '');
+                }
+
+            } else {
+                // Reset to default
+                setName('');
+                setMeta('');
+                setYear(new Date().getFullYear().toString());
+                setSelectedGenres([]);
+                setRating('');
+                setPosterUrl('');
+                setProviders([]);
+                setMediaType('movie');
+                setStudyType('reading');
+                setLink('');
+                setChannelName('');
+                setCoverUrl('');
+                setScheduledDate('');
+                setScheduledTime('');
+                setSearchResults([]);
+                setShowResults(false);
+            }
         }
-    }, [isOpen, activeTab]);
+    }, [isOpen, activeTab, initialData]);
+
+    // Auto-detect YouTube thumbnail
+    useEffect(() => {
+        if (activeTab === 'bible' && link) {
+            const getYoutubeId = (url: string) => {
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[2].length === 11) ? match[2] : null;
+            };
+
+            const ytId = getYoutubeId(link);
+            if (ytId && !coverUrl) {
+                setCoverUrl(`https://img.youtube.com/vi/${ytId}/mqdefault.jpg`);
+            }
+        }
+    }, [link, activeTab]);
 
     if (!isOpen) return null;
 
@@ -68,16 +135,17 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
     };
 
     const getTitle = () => {
+        const prefix = initialData ? 'Editar ' : 'Adicionar ';
         switch (activeTab) {
-            case 'movies': return 'Adicionar Filme/Série';
-            case 'music': return 'Adicionar Música';
-            case 'podcast': return 'Adicionar Podcast';
-            case 'bible': return 'Adicionar Estudo Bíblico';
-            case 'prayer': return 'Adicionar Motivo de Oração';
-            case 'couple': return 'Adicionar Lazer';
-            case 'shopping': return 'Adicionar Item de Compra';
-            case 'travel': return 'Adicionar Item de Viagem';
-            default: return 'Adicionar Item';
+            case 'movies': return prefix + 'Filme/Série';
+            case 'music': return prefix + 'Música';
+            case 'podcast': return prefix + 'Podcast';
+            case 'bible': return prefix + 'Estudo Bíblico';
+            case 'prayer': return prefix + 'Motivo de Oração';
+            case 'couple': return prefix + 'Lazer';
+            case 'shopping': return prefix + 'Item de Compra';
+            case 'travel': return prefix + 'Item de Viagem';
+            default: return prefix + 'Item';
         }
     };
 
@@ -133,19 +201,65 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                     genre: selectedGenres.join(', '),
                     rating,
                     posterUrl,
-                    providers, // storing providers array
-                    mediaType // storing media type
+                    providers,
+                    mediaType,
+                    scheduledDate, // Add scheduledDate
+                    scheduledTime  // Add scheduledTime
+                });
+            } else if (activeTab === 'bible') {
+                finalMeta = JSON.stringify({
+                    description: meta,
+                    type: studyType,
+                    link: link,
+                    channelName: channelName,
+                    coverUrl: coverUrl,
+                    scheduledDate: scheduledDate,
+                    scheduledTime: scheduledTime
                 });
             }
 
-            await activityService.addItem(activeTab, name, finalMeta || undefined);
-            onSuccess();
+            if (initialData) {
+                await activityService.updateItem(initialData.id, {
+                    name,
+                    meta: finalMeta || undefined,
+                    category: activeTab
+                });
+            } else {
+                await activityService.addItem(activeTab, name, finalMeta || undefined);
+            }
+
+            // Navigate to Dashboard if item has date (Movies or Bible)
+            if ((activeTab === 'bible' || activeTab === 'movies') && scheduledDate) {
+                navigate('/app', { state: { date: scheduledDate } });
+            } else {
+                onSuccess();
+            }
             onClose();
         } catch (error) {
             console.error(error);
-            alert('Erro ao adicionar item');
+            alert('Erro ao salvar item');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const getNameLabel = () => {
+        switch (activeTab) {
+            case 'movies': return 'Nome do Filme/Série';
+            case 'music': return 'Nome da Música';
+            case 'bible': return 'Título do Estudo';
+            case 'prayer': return 'Título da Oração';
+            case 'podcast': return 'Nome do Podcast';
+            default: return 'Nome do Item';
+        }
+    };
+
+    const getNamePlaceholder = () => {
+        switch (activeTab) {
+            case 'movies': return 'Ex: Inception, Breaking Bad...';
+            case 'bible': return 'Ex: João 15, Oração por Cura...';
+            case 'shopping': return 'Ex: Leite, Pão...';
+            default: return 'Ex: Item...';
         }
     };
 
@@ -161,10 +275,10 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
 
                 <form onSubmit={handleSubmit} className="modal-form">
                     <div className="form-group" style={{ position: 'relative' }}>
-                        <label>Nome do Item</label>
+                        <label>{getNameLabel()}</label>
                         <input
                             type="text"
-                            placeholder="Ex: Leite, Inception, Salmo 23..."
+                            placeholder={getNamePlaceholder()}
                             value={name}
                             onChange={e => setName(e.target.value)}
                             className="modal-input"
@@ -178,13 +292,17 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                                 className="search-btn"
                                 style={{
                                     position: 'absolute',
-                                    right: '8px',
+                                    right: '12px',
                                     top: '50%',
                                     transform: 'translateY(-50%)',
                                     background: 'none',
                                     border: 'none',
                                     cursor: 'pointer',
-                                    color: 'var(--color-primary)'
+                                    color: 'var(--color-primary)',
+                                    padding: '4px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
                                 }}
                             >
                                 {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
@@ -244,7 +362,119 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                         )}
                     </div>
 
-                    {activeTab !== 'movies' && (
+                    {activeTab === 'bible' && (
+                        <>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label>Tipo de Item</label>
+                                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                                    {[
+                                        { id: 'reading', label: 'Leitura' },
+                                        { id: 'devotional', label: 'Devocional' },
+                                        { id: 'prayer', label: 'Oração' }
+                                    ].map(type => (
+                                        <button
+                                            key={type.id}
+                                            type="button"
+                                            onClick={() => setStudyType(type.id as any)}
+                                            className={`tab-pill ${studyType === type.id ? 'active' : ''}`}
+                                            style={{
+                                                flex: 1,
+                                                justifyContent: 'center',
+                                                backgroundColor: studyType === type.id ? 'var(--color-primary)' : 'rgba(255,255,255,0.05)',
+                                                border: 'none'
+                                            }}
+                                        >
+                                            {type.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="form-group" style={{ marginBottom: '1rem' }}>
+                                <label>Livro / Versículo / Tema</label>
+                                <input
+                                    type="text"
+                                    placeholder="Ex: João 15, Salmos 23..."
+                                    value={meta}
+                                    onChange={e => setMeta(e.target.value)}
+                                    className="modal-input"
+                                />
+                            </div>
+
+                            {/* Date and Time Row */}
+                            <div className="form-row" style={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Data</label>
+                                    <input
+                                        type="date"
+                                        value={scheduledDate}
+                                        onChange={e => setScheduledDate(e.target.value)}
+                                        className="modal-input"
+                                        style={{ marginTop: '4px' }}
+                                    />
+                                </div>
+                                <div className="form-group" style={{ flex: 1 }}>
+                                    <label>Hora</label>
+                                    <input
+                                        type="time"
+                                        value={scheduledTime}
+                                        onChange={e => setScheduledTime(e.target.value)}
+                                        className="modal-input"
+                                        style={{ marginTop: '4px' }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Link de Apoio (Opcional)</label>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    <input
+                                        type="url"
+                                        placeholder="YouTube, Spotify..."
+                                        value={link}
+                                        onChange={e => setLink(e.target.value)}
+                                        className="modal-input"
+                                        style={{ flex: 2 }}
+                                    />
+                                    <input
+                                        type="text"
+                                        placeholder="Canal/Autor..."
+                                        value={channelName}
+                                        onChange={e => setChannelName(e.target.value)}
+                                        className="modal-input"
+                                        style={{ flex: 1 }}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group" style={{ marginTop: '12px' }}>
+                                <label style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Capa (Automático se YouTube)</label>
+                                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                                    <input
+                                        type="url"
+                                        placeholder="https://..."
+                                        value={coverUrl}
+                                        onChange={e => setCoverUrl(e.target.value)}
+                                        className="modal-input"
+                                        style={{ flex: 1 }}
+                                    />
+                                    {coverUrl && (
+                                        <img
+                                            src={coverUrl}
+                                            alt="Preview"
+                                            style={{
+                                                width: '50px',
+                                                height: '50px',
+                                                borderRadius: '8px',
+                                                objectFit: 'cover',
+                                                border: '1px solid rgba(255,255,255,0.1)'
+                                            }}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                    {activeTab !== 'movies' && activeTab !== 'bible' && (
                         <div className="form-group">
                             <label>{getMetaLabel()} (Opcional)</label>
                             <input
@@ -257,72 +487,96 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                         </div>
                     )}
 
-                    {activeTab === 'movies' && (
-                        <div className="form-column" style={{ gap: '1rem', marginTop: '1rem' }}>
-                            <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
-                                <div className="form-group" style={{ flex: 1 }}>
-                                    <label>Ano de Lançamento</label>
-                                    <input
-                                        type="number"
-                                        placeholder="2023"
-                                        value={year}
-                                        onChange={e => setYear(e.target.value)}
-                                        className="modal-input"
-                                        min="1900"
-                                        max="2099"
-                                    />
+                    {
+                        activeTab === 'movies' && (
+                            <div className="form-column" style={{ gap: '1rem', marginTop: '1rem' }}>
+                                <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label>Ano de Lançamento</label>
+                                        <input
+                                            type="number"
+                                            placeholder="2023"
+                                            value={year}
+                                            onChange={e => setYear(e.target.value)}
+                                            className="modal-input"
+                                            min="1900"
+                                            max="2099"
+                                        />
+                                    </div>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label>Nota (0-10)</label>
+                                        <input
+                                            type="number"
+                                            placeholder="8.5"
+                                            value={rating}
+                                            onChange={e => setRating(e.target.value)}
+                                            className="modal-input"
+                                            step="0.1"
+                                            min="0"
+                                            max="10"
+                                        />
+                                    </div>
                                 </div>
-                                <div className="form-group" style={{ flex: 1 }}>
-                                    <label>Nota (0-10)</label>
-                                    <input
-                                        type="number"
-                                        placeholder="8.5"
-                                        value={rating}
-                                        onChange={e => setRating(e.target.value)}
-                                        className="modal-input"
-                                        step="0.1"
-                                        min="0"
-                                        max="10"
-                                    />
-                                </div>
-                            </div>
 
-                            <div className="form-group">
-                                <label>Gêneros ({selectedGenres.length})</label>
-                                <div className="genres-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
-                                    {GENRES.map(g => (
-                                        <button
-                                            key={g}
-                                            type="button"
-                                            onClick={() => {
-                                                if (selectedGenres.includes(g)) {
-                                                    setSelectedGenres(selectedGenres.filter(i => i !== g));
-                                                } else {
-                                                    setSelectedGenres([...selectedGenres, g]);
-                                                }
-                                            }}
-                                            className={`genre-chip ${selectedGenres.includes(g) ? 'active' : ''}`}
-                                            style={{
-                                                padding: '6px 12px',
-                                                borderRadius: '20px',
-                                                border: '1px solid ' + (selectedGenres.includes(g) ? 'var(--color-primary)' : 'rgba(255,255,255,0.2)'),
-                                                backgroundColor: selectedGenres.includes(g) ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
-                                                color: selectedGenres.includes(g) ? 'var(--color-primary)' : 'var(--text-sec)',
-                                                fontSize: '0.85rem',
-                                                cursor: 'pointer',
-                                                transition: 'all 0.2s'
-                                            }}
-                                        >
-                                            {g}
-                                        </button>
-                                    ))}
+                                {/* Date and Time for Movies */}
+                                <div className="form-row" style={{ display: 'flex', gap: '1rem' }}>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label>Data de Assistir</label>
+                                        <input
+                                            type="date"
+                                            value={scheduledDate}
+                                            onChange={e => setScheduledDate(e.target.value)}
+                                            className="modal-input"
+                                        />
+                                    </div>
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label>Hora</label>
+                                        <input
+                                            type="time"
+                                            value={scheduledTime}
+                                            onChange={e => setScheduledTime(e.target.value)}
+                                            className="modal-input"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="form-group">
+                                    <label>Gêneros ({selectedGenres.length})</label>
+                                    <div className="genres-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' }}>
+                                        {GENRES.map(g => (
+                                            <button
+                                                key={g}
+                                                type="button"
+                                                onClick={() => {
+                                                    if (selectedGenres.includes(g)) {
+                                                        setSelectedGenres(selectedGenres.filter(i => i !== g));
+                                                    } else {
+                                                        setSelectedGenres([...selectedGenres, g]);
+                                                    }
+                                                }}
+                                                className={`genre-chip ${selectedGenres.includes(g) ? 'active' : ''}`}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '20px',
+                                                    border: '1px solid ' + (selectedGenres.includes(g) ? 'var(--color-primary)' : 'rgba(255,255,255,0.2)'),
+                                                    backgroundColor: selectedGenres.includes(g) ? 'rgba(59, 130, 246, 0.2)' : 'transparent',
+                                                    color: selectedGenres.includes(g) ? 'var(--color-primary)' : 'var(--text-sec)',
+                                                    fontSize: '0.85rem',
+                                                    cursor: 'pointer',
+                                                    transition: 'all 0.2s'
+                                                }}
+                                            >
+                                                {g}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )}
+                        )
+                    }
 
                     <button type="submit" className="save-btn" disabled={loading}>
-                        {loading ? 'Adicionando...' : 'Adicionar'}
+                        {loading ? 'Salvando...' : initialData ? 'Salvar Alterações' : 'Adicionar'}
                     </button>
                 </form>
             </div>

@@ -13,6 +13,7 @@ import GroupMenu from './pages/Group/GroupMenu';
 import EnterGroup from './pages/Group/EnterGroup';
 import CreateGroup from './pages/Group/CreateGroup';
 import ManageGroup from './pages/Group/ManageGroup';
+import BibleStudy from './pages/BibleStudy'; // New Import
 import Notifications from './pages/Notifications';
 import Privacy from './pages/Privacy';
 import HelpSupport from './pages/HelpSupport';
@@ -77,6 +78,7 @@ function App() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="rotina" element={<RoutinePage />} /> {/* Use the new component */}
+            <Route path="estudo" element={<BibleStudy />} />
             <Route path="atividades/:tab?" element={<Activities />} />
             <Route path="financas" element={<Finances />} />
             <Route path="perfil" element={<Profile />} />

@@ -7,6 +7,7 @@ import {
 import { activityService, type ActivityItem } from '../../services/activityService';
 import AddActivityModal from './components/AddActivityModal';
 import Movies from './Movies';
+import BibleStudy from '../BibleStudy';
 import './Activities.css';
 
 type ActivityType = 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple' | 'shopping' | 'travel';
@@ -18,6 +19,23 @@ export default function Activities() {
     const [items, setItems] = useState<ActivityItem[]>([]);
     const [loading, setLoading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingItem, setEditingItem] = useState<ActivityItem | null>(null);
+
+    // ... existing code ...
+
+    const handleEdit = (item: ActivityItem) => {
+        setEditingItem(item);
+        setIsModalOpen(true);
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setEditingItem(null);
+    };
+
+    // ... existing code ...
+
+
 
     // Configuração das Abas
     const tabs = [
@@ -118,6 +136,15 @@ export default function Activities() {
             <div className="activities-content">
                 {activeTab === 'movies' ? (
                     <Movies embedded items={items} onRefresh={loadItems} />
+                ) : activeTab === 'bible' ? (
+                    <BibleStudy
+                        embedded
+                        items={items}
+                        onToggle={toggleItem}
+                        onAdd={() => setIsModalOpen(true)}
+                        onEdit={handleEdit}
+                        onDelete={(id) => deleteItem(id, { stopPropagation: () => { } } as React.MouseEvent)}
+                    />
                 ) : (
                     <div className="activities-list">
                         <div className="list-summary">
@@ -155,9 +182,10 @@ export default function Activities() {
 
             <AddActivityModal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={handleCloseModal}
                 onSuccess={loadItems}
                 activeTab={activeTab}
+                initialData={editingItem}
             />
         </div>
     );

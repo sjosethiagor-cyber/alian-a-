@@ -51,6 +51,15 @@ export const activityService = {
         if (error) throw error;
     },
 
+    async updateItem(id: string, updates: Partial<ActivityItem>): Promise<void> {
+        const { error } = await supabase
+            .from('activity_items')
+            .update(updates)
+            .eq('id', id);
+
+        if (error) throw error;
+    },
+
     async deleteItem(id: string): Promise<void> {
         const { error } = await supabase
             .from('activity_items')

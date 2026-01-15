@@ -1,16 +1,18 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-    CheckCircle, DollarSign, ListTodo, Plus, MapPin, Calendar
+    CheckCircle, DollarSign, ListTodo, Plus, Calendar, BookOpen, Film
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { groupService, type Member } from '../services/groupService';
 import { routineService } from '../services/routineService';
 import { activityService } from '../services/activityService';
 import { financeService } from '../services/financeService';
+import './Dashboard.css';
 
 export default function Dashboard() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, profile } = useAuth();
 
     // State
@@ -19,34 +21,59 @@ export default function Dashboard() {
     const [shoppingItems, setShoppingItems] = useState(0);
     const [pendingTasks, setPendingTasks] = useState(0);
     const [partner, setPartner] = useState<Member | null>(null);
+    const [todayHighlight, setTodayHighlight] = useState<any>(null);
+
+    // Date Logic
+    const [selectedDate, setSelectedDate] = useState(() => {
+        if (location.state?.date) {
+            // Handle YYYY-MM-DD or full date string
+            const d = new Date(location.state.date);
+            // Adjust for timezone offset to prevent day shifting if purely YYYY-MM-DD
+            if (location.state.date.length === 10) {
+                const [y, m, d_str] = location.state.date.split('-').map(Number);
+                return new Date(y, m - 1, d_str);
+            }
+            return d;
+        }
+        return new Date();
+    });
 
     // Derived State
     const partnerName = partner?.profile?.name || 'Parceiro';
 
-    const today = new Date();
-    const dateString = today.toLocaleDateString('pt-BR', {
+    const dateString = selectedDate.toLocaleDateString('pt-BR', {
         weekday: 'long',
         day: 'numeric',
         month: 'long'
     });
 
-    // Generate week days (centered on today or start of week)
+    // Generate week days (centered on selectedDate)
     const weekDays = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-        // Start from 3 days ago to show a window, or start from Sunday? 
-        // Let's check the UI snapshot logic implied. Usually "current week".
-        // Let's just do a simple window around today for now [-3, +3]
-        d.setDate(today.getDate() - 3 + i);
+        const d = new Date(selectedDate);
+        d.setDate(selectedDate.getDate() - 3 + i);
         return {
             day: d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 3),
             num: d.getDate(),
-            active: d.getDate() === today.getDate() && d.getMonth() === today.getMonth()
+            fullDate: d,
+            active: d.getDate() === selectedDate.getDate() && d.getMonth() === selectedDate.getMonth()
         };
     });
 
     useEffect(() => {
+        if (location.state?.date) {
+            const d = new Date(location.state.date);
+            if (location.state.date.length === 10) {
+                const [y, m, day] = location.state.date.split('-').map(Number);
+                setSelectedDate(new Date(y, m - 1, day));
+            } else {
+                setSelectedDate(d);
+            }
+        }
+    }, [location.state]);
+
+    useEffect(() => {
         loadDashboardData();
-    }, [user]);
+    }, [user, selectedDate]);
 
     const loadDashboardData = async () => {
         if (!user) return;
@@ -57,8 +84,7 @@ export default function Dashboard() {
             // 1. Load Group & Partner
             const userGroup = await groupService.getUserGroup();
             if (userGroup) {
-                // Determine partner (anyone else in the group)
-                // We need to fetch details to get members
+                // Determine partner
                 const fullGroup = await groupService.getGroupDetails(userGroup.id);
                 if (fullGroup) {
                     const partnerMember = fullGroup.members?.find(m => m.user_id !== user.id);
@@ -67,28 +93,78 @@ export default function Dashboard() {
 
                 // 2. Load Pending Tasks (Routine)
                 const routines = await routineService.getGroupRoutines(userGroup.id);
-                const todayStr = today.toISOString().split('T')[0];
-                const dayOfWeek = today.getDay(); // 0 = Sun
+                const selectedDateStr = selectedDate.toISOString().split('T')[0];
+                const dayOfWeek = selectedDate.getDay(); // 0 = Sun
 
-                // Filter routines for today
-                const todaysRoutines = routines.filter(r => {
+                // Filter routines for selectedDate
+                const daysRoutines = routines.filter(r => {
                     if (r.frequency === 'daily') return true;
                     if (r.frequency === 'weekly' && r.week_days?.includes(dayOfWeek)) return true;
-                    if (r.frequency === 'specific_date' && r.specific_date === todayStr) return true;
+                    if (r.frequency === 'specific_date' && r.specific_date === selectedDateStr) return true;
                     return false;
                 });
 
                 // Check completions
-                const completions = await routineService.getCompletions(todaysRoutines.map(r => r.id), todayStr);
+                const completions = await routineService.getCompletions(daysRoutines.map(r => r.id), selectedDateStr);
                 const completedIds = new Set(completions.map(c => c.routine_id));
-                const pendingCount = todaysRoutines.filter(r => !completedIds.has(r.id)).length;
+                const pendingCount = daysRoutines.filter(r => !completedIds.has(r.id)).length;
 
                 setPendingTasks(pendingCount);
             }
 
-            // 3. Load Shopping Items
+            // 3. Load Shopping Items (General, not strictly date bound yet, but keeping as is)
             const shopping = await activityService.getItems('shopping');
             setShoppingItems(shopping.filter(i => !i.completed).length);
+
+            // 3.5 Load Highlights (Bible & Movies)
+            const bibleItems = await activityService.getItems('bible');
+            const movieItems = await activityService.getItems('movies');
+            const selectedDateStr = selectedDate.toISOString().split('T')[0];
+
+            // Helper to check date
+            const filterByDate = (items: typeof bibleItems) => items.filter(item => {
+                if (!item.meta) return false;
+                try {
+                    const meta = JSON.parse(item.meta);
+                    return meta.scheduledDate === selectedDateStr;
+                } catch { return false; }
+            });
+
+            const todaysStudies = filterByDate(bibleItems);
+            const todaysMovies = filterByDate(movieItems);
+
+            // Merge and pick one
+            // Priority: Bible Study > Movie (or just first found)
+            if (todaysStudies.length > 0) {
+                const bestFit = todaysStudies.find(i => !i.completed) || todaysStudies[0];
+                const meta = JSON.parse(bestFit.meta!);
+                setTodayHighlight({
+                    type: 'bible',
+                    title: bestFit.name,
+                    time: meta.scheduledTime || 'Dia todo',
+                    location: 'Estudo Bíblico',
+                    coverUrl: meta.coverUrl,
+                    id: bestFit.id,
+                    path: '/app/estudo',
+                    icon: BookOpen
+                });
+            } else if (todaysMovies.length > 0) {
+                const bestFit = todaysMovies.find(i => !i.completed) || todaysMovies[0];
+                const meta = JSON.parse(bestFit.meta!);
+                setTodayHighlight({
+                    type: 'movie',
+                    title: bestFit.name,
+                    time: meta.scheduledTime || 'Horário de cinema',
+                    location: 'Cinema em Casa',
+                    coverUrl: meta.posterUrl, // Use poster for movies
+                    id: bestFit.id,
+                    path: '/app/atividades',
+                    icon: Film
+                });
+            } else {
+                setTodayHighlight(null);
+            }
+
 
             // 4. Load Finance Summary
             const transactions = await financeService.getTransactions();
@@ -178,7 +254,12 @@ export default function Dashboard() {
             <div className="date-strip-container">
                 <div className="date-strip">
                     {weekDays.map((d, idx) => (
-                        <div key={idx} className={`date-item ${d.active ? 'active' : ''}`}>
+                        <div
+                            key={idx}
+                            className={`date-item ${d.active ? 'active' : ''}`}
+                            onClick={() => setSelectedDate(d.fullDate)}
+                            style={{ cursor: 'pointer' }}
+                        >
                             <span className="day-label">{d.day}</span>
                             <span className="day-number">{d.num}</span>
                             {d.active && <div className="active-dot" />}
@@ -190,24 +271,37 @@ export default function Dashboard() {
             {/* Highlight Card */}
             <section className="section-highlight">
                 <h3 className="section-title">Destaque de Hoje</h3>
-                <div className="highlight-card">
-                    <div className="highlight-overlay" />
-                    <div className="highlight-content">
-                        <div className="highlight-top">
-                            <span className="time-tag">20:00</span>
-                            <button className="calendar-btn">
-                                <Calendar size={18} />
-                            </button>
-                        </div>
-                        <div className="highlight-bottom">
-                            <h2 className="highlight-title">Jantar Especial</h2>
-                            <div className="highlight-location">
-                                <MapPin size={16} />
-                                <span>Casa</span>
+                {todayHighlight ? (
+                    <div className="highlight-card" onClick={() => navigate(todayHighlight.path)}>
+                        <div className="highlight-overlay"
+                            style={todayHighlight.coverUrl ? {
+                                backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.9), transparent), url(${todayHighlight.coverUrl})`,
+                                opacity: 1
+                            } : {}}
+                        />
+                        <div className="highlight-content">
+                            <div className="highlight-top">
+                                <span className="time-tag">{todayHighlight.time}</span>
+                                <button className="calendar-btn">
+                                    <todayHighlight.icon size={18} />
+                                </button>
+                            </div>
+                            <div className="highlight-bottom">
+                                <h2 className="highlight-title">{todayHighlight.title}</h2>
+                                <div className="highlight-location">
+                                    <Calendar size={16} />
+                                    <span>{todayHighlight.location}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="highlight-card">
+                        <div className="highlight-content" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                            <span style={{ color: 'white', opacity: 0.7 }}>Nenhum destaque agendado</span>
+                        </div>
+                    </div>
+                )}
             </section>
 
             {/* Categories Grid */}
