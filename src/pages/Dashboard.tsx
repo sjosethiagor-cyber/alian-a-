@@ -1,82 +1,108 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
-    CheckCircle, ShoppingCart, DollarSign, ListTodo, Plus, MapPin, Calendar
+    CheckCircle, DollarSign, ListTodo, Plus, MapPin, Calendar
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { groupService, type Group } from '../services/groupService';
+import { groupService, type Member } from '../services/groupService';
 import { routineService } from '../services/routineService';
 import { activityService } from '../services/activityService';
-import './Dashboard.css';
+import { financeService } from '../services/financeService';
 
 export default function Dashboard() {
     const navigate = useNavigate();
     const { user, profile } = useAuth();
-    const [group, setGroup] = useState<Group | null>(null);
-    const [pendingTasks, setPendingTasks] = useState(0);
-    const [shoppingItems, setShoppingItems] = useState(0);
+
+    // State
     const [loading, setLoading] = useState(true);
+    const [financeSummary, setFinanceSummary] = useState({ total: 0, pending: 0 });
+    const [shoppingItems, setShoppingItems] = useState(0);
+    const [pendingTasks, setPendingTasks] = useState(0);
+    const [partner, setPartner] = useState<Member | null>(null);
+
+    // Derived State
+    const partnerName = partner?.profile?.name || 'Parceiro';
+
+    const today = new Date();
+    const dateString = today.toLocaleDateString('pt-BR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long'
+    });
+
+    // Generate week days (centered on today or start of week)
+    const weekDays = Array.from({ length: 7 }, (_, i) => {
+        const d = new Date();
+        // Start from 3 days ago to show a window, or start from Sunday? 
+        // Let's check the UI snapshot logic implied. Usually "current week".
+        // Let's just do a simple window around today for now [-3, +3]
+        d.setDate(today.getDate() - 3 + i);
+        return {
+            day: d.toLocaleDateString('pt-BR', { weekday: 'short' }).slice(0, 3),
+            num: d.getDate(),
+            active: d.getDate() === today.getDate() && d.getMonth() === today.getMonth()
+        };
+    });
+
+    useEffect(() => {
+        loadDashboardData();
+    }, [user]);
 
     const loadDashboardData = async () => {
-        try {
-            // 1. Load Group Details (for partner name)
-            const currentGroup = await groupService.getUserGroup();
-            if (currentGroup) {
-                const details = await groupService.getGroupDetails(currentGroup.id);
-                setGroup(details);
-            }
+        if (!user) return;
 
-            // 2. Load Pending Tasks
-            if (currentGroup) {
-                const tasks = await routineService.getGroupRoutines(currentGroup.id);
-                // Calculate pending for today
-                const todayStr = new Date().toISOString().split('T')[0];
-                const completions = await routineService.getCompletions(tasks.map(t => t.id), todayStr);
-                const userCompletions = completions.filter(c => c.user_id === user?.id);
-                const completedSet = new Set(userCompletions.map(c => c.routine_id));
-                setPendingTasks(tasks.length - completedSet.size);
+        try {
+            setLoading(true);
+
+            // 1. Load Group & Partner
+            const userGroup = await groupService.getUserGroup();
+            if (userGroup) {
+                // Determine partner (anyone else in the group)
+                // We need to fetch details to get members
+                const fullGroup = await groupService.getGroupDetails(userGroup.id);
+                if (fullGroup) {
+                    const partnerMember = fullGroup.members?.find(m => m.user_id !== user.id);
+                    setPartner(partnerMember || null);
+                }
+
+                // 2. Load Pending Tasks (Routine)
+                const routines = await routineService.getGroupRoutines(userGroup.id);
+                const todayStr = today.toISOString().split('T')[0];
+                const dayOfWeek = today.getDay(); // 0 = Sun
+
+                // Filter routines for today
+                const todaysRoutines = routines.filter(r => {
+                    if (r.frequency === 'daily') return true;
+                    if (r.frequency === 'weekly' && r.week_days?.includes(dayOfWeek)) return true;
+                    if (r.frequency === 'specific_date' && r.specific_date === todayStr) return true;
+                    return false;
+                });
+
+                // Check completions
+                const completions = await routineService.getCompletions(todaysRoutines.map(r => r.id), todayStr);
+                const completedIds = new Set(completions.map(c => c.routine_id));
+                const pendingCount = todaysRoutines.filter(r => !completedIds.has(r.id)).length;
+
+                setPendingTasks(pendingCount);
             }
 
             // 3. Load Shopping Items
-            const items = await activityService.getItems('shopping');
-            setShoppingItems(items.filter(i => !i.completed).length);
+            const shopping = await activityService.getItems('shopping');
+            setShoppingItems(shopping.filter(i => !i.completed).length);
+
+            // 4. Load Finance Summary
+            const transactions = await financeService.getTransactions();
+            const total = transactions.reduce((acc, t) => {
+                return t.type === 'income' ? acc + t.amount : acc - t.amount;
+            }, 0);
+            setFinanceSummary({ total, pending: 0 });
 
         } catch (error) {
-            console.error(error);
+            console.error('Error loading dashboard data:', error);
         } finally {
             setLoading(false);
         }
     };
-
-    useEffect(() => {
-        loadDashboardData();
-    }, []);
-
-    // Date Logic
-    const today = new Date();
-    const dateOptions: Intl.DateTimeFormatOptions = { weekday: 'long', day: 'numeric', month: 'short' };
-    const dateString = today.toLocaleDateString('pt-BR', dateOptions).toUpperCase();
-
-    // Generate week days
-    const weekDays = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date(today);
-        d.setDate(today.getDate() - today.getDay() + i); // Start from Sunday? Or Monday? Let's center around today or just show current week
-        // Let's just show -3 to +3 days
-        return d;
-    }).map((_, i) => {
-        // const isToday = d.toDateString() === today.toDateString(); // Removed unused
-        const start = new Date(today);
-        start.setDate(today.getDate() - 3 + i);
-        return {
-            day: start.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase().replace('.', ''),
-            num: start.getDate(),
-            active: i === 3
-        };
-    });
-
-    // Partner Name Logic
-    const partner = group?.members?.find(m => m.user_id !== user?.id);
-    const partnerName = partner?.profile?.name || 'Seu Amor';
 
     const categories = [
         {
@@ -90,36 +116,26 @@ export default function Dashboard() {
             path: '/app/rotina'
         },
         {
-            id: 'shopping',
-            icon: ShoppingCart,
-            label: 'Compras',
-            count: `${shoppingItems} itens`,
-            sub: 'Mercado Semanal',
-            color: '#10b981', // Green
-            bg: 'rgba(16, 185, 129, 0.1)',
+            id: 'activities', // Merged Activities
+            icon: ListTodo,
+            label: 'Atividades',
+            count: `${shoppingItems} compras`, // Example priority
+            sub: 'Listas & Lazer',
+            color: '#f59e0b', // Orange
+            bg: 'rgba(245, 158, 11, 0.1)',
+            btnText: 'Ver',
             path: '/app/atividades'
         },
         {
             id: 'finance',
             icon: DollarSign,
             label: 'Finanças',
-            count: '',
-            sub: 'Contas & Metas',
+            count: financeSummary.total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+            sub: 'Saldo Atual',
             color: '#8b5cf6', // Purple
             bg: 'rgba(139, 92, 246, 0.1)',
             btnText: 'Acessar',
             path: '/app/financas'
-        },
-        {
-            id: 'checklists',
-            icon: ListTodo,
-            label: 'Atividades',
-            count: '',
-            sub: 'Listas Gerais',
-            color: '#f59e0b', // Orange
-            bg: 'rgba(245, 158, 11, 0.1)',
-            btnText: 'Ver',
-            path: '/app/atividades'
         },
     ];
 
@@ -222,7 +238,7 @@ export default function Dashboard() {
                 </div>
             </section>
 
-            {/* Activity Feed Placeholder - can be real later */}
+            {/* Activity Feed Placeholder */}
             <section className="section-activity">
                 <h3 className="section-title">Atividade Recente</h3>
                 <div className="activity-list">

@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
     ArrowLeft, Plus, Trash2,
-    Film, Music, Headphones, BookOpen, Heart, BookHeart
+    Film, Music, Headphones, BookOpen, Heart, BookHeart, ShoppingBag, Plane
 } from 'lucide-react';
 import { activityService, type ActivityItem } from '../../services/activityService';
 import AddActivityModal from './components/AddActivityModal';
+import Movies from './Movies';
 import './Activities.css';
 
-type ActivityType = 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple';
+type ActivityType = 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple' | 'shopping' | 'travel';
 
 export default function Activities() {
     const navigate = useNavigate();
@@ -26,9 +27,12 @@ export default function Activities() {
         { id: 'prayer', label: 'Estudo para Oração', icon: BookHeart }, // New Icon needed or reuse
         { id: 'podcast', label: 'Podcast', icon: Headphones },
         { id: 'couple', label: 'Lazer', icon: Heart },
+        { id: 'shopping', label: 'Compras', icon: ShoppingBag },
+        { id: 'travel', label: 'Viagens', icon: Plane },
     ];
 
     const loadItems = async () => {
+        // if (activeTab === 'movies') return; // Movies component handles its own data
         setLoading(true);
         try {
             const data = await activityService.getItems(activeTab);
@@ -76,6 +80,11 @@ export default function Activities() {
         }
     };
 
+
+    // if (activeTab === 'movies') {
+    //     return <Movies />;
+    // }
+
     return (
         <div className="page-container">
             <header className="page-header">
@@ -106,35 +115,41 @@ export default function Activities() {
             </div>
 
             {/* List Content */}
-            <div className="activities-list">
-                <div className="list-summary">
-                    <span>
-                        {items.filter(i => !i.completed).length} pendentes em {tabs.find(t => t.id === activeTab)?.label}
-                    </span>
-                    <button className="add-btn-small" onClick={() => setIsModalOpen(true)}>
-                        <Plus size={16} /> Adicionar Item
-                    </button>
-                </div>
-
-                {loading ? (
-                    <div className="loading-state">Carregando...</div>
-                ) : items.length === 0 ? (
-                    <div className="empty-state">
-                        <p>Nenhum item nesta lista.</p>
-                    </div>
+            <div className="activities-content">
+                {activeTab === 'movies' ? (
+                    <Movies embedded items={items} onRefresh={loadItems} />
                 ) : (
-                    items.map(item => (
-                        <div key={item.id} className="activity-card" onClick={() => toggleItem(item.id, item.completed)}>
-                            <div className={`checkbox-custom ${item.completed ? 'checked' : ''}`} />
-                            <div className="activity-info">
-                                <span className={`activity-name ${item.completed ? 'completed-text' : ''}`}>{item.name}</span>
-                                {item.meta && <span className="activity-meta">{item.meta}</span>}
-                            </div>
-                            <button className="delete-btn" onClick={(e) => deleteItem(item.id, e)}>
-                                <Trash2 size={16} />
+                    <div className="activities-list">
+                        <div className="list-summary">
+                            <span>
+                                {items.filter(i => !i.completed).length} pendentes em {tabs.find(t => t.id === activeTab)?.label}
+                            </span>
+                            <button className="add-btn-small" onClick={() => setIsModalOpen(true)}>
+                                <Plus size={16} /> Adicionar Item
                             </button>
                         </div>
-                    ))
+
+                        {loading ? (
+                            <div className="loading-state">Carregando...</div>
+                        ) : items.length === 0 ? (
+                            <div className="empty-state">
+                                <p>Nenhum item nesta lista.</p>
+                            </div>
+                        ) : (
+                            items.map(item => (
+                                <div key={item.id} className="activity-card" onClick={() => toggleItem(item.id, item.completed)}>
+                                    <div className={`checkbox-custom ${item.completed ? 'checked' : ''}`} />
+                                    <div className="activity-info">
+                                        <span className={`activity-name ${item.completed ? 'completed-text' : ''}`}>{item.name}</span>
+                                        {item.meta && <span className="activity-meta">{item.meta}</span>}
+                                    </div>
+                                    <button className="delete-btn" onClick={(e) => deleteItem(item.id, e)}>
+                                        <Trash2 size={16} />
+                                    </button>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 )}
             </div>
 

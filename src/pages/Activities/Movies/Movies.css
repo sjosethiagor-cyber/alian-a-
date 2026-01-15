@@ -1,0 +1,195 @@
+/* Movies.css */
+.movies-container {
+    padding: 1rem;
+    padding-bottom: 80px; /* Bottom Nav space */
+    color: white;
+}
+
+/* Header & Stats */
+.movies-header {
+    margin-bottom: 2rem;
+}
+
+.movies-stats-row {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.stat-card {
+    flex: 1;
+    background: linear-gradient(145deg, rgba(30, 41, 59, 0.6), rgba(15, 23, 42, 0.8));
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 1.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-primary), transparent);
+    opacity: 0.5;
+}
+
+.stat-icon {
+    color: var(--color-primary);
+    margin-bottom: 0.5rem;
+    opacity: 0.8;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-sec);
+}
+
+/* Sections */
+.movies-section {
+    margin-bottom: 2rem;
+}
+
+.section-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+}
+
+.view-all-link {
+    font-size: 0.85rem;
+    color: var(--color-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+/* Movie Card */
+.movie-card {
+    display: flex;
+    gap: 1rem;
+    background-color: rgba(30, 41, 59, 0.3);
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    align-items: center;
+    transition: transform 0.2s, background-color 0.2s;
+    border: 1px solid transparent;
+}
+
+.movie-card:active {
+    transform: scale(0.98);
+}
+
+.movie-poster {
+    width: 60px;
+    height: 90px;
+    border-radius: 8px;
+    background-color: #334155;
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.movie-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+}
+
+.movie-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    line-height: 1.3;
+}
+
+.movie-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-sec);
+}
+
+.rating-badge {
+    background-color: #eab308;
+    color: #000;
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.added-by {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    font-size: 0.75rem;
+    color: var(--text-sec);
+    opacity: 0.8;
+}
+
+/* Checkbox specific to Movie Card */
+.movie-check {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--text-sec);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+
+.movie-check.checked {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: white;
+}
+
+.movie-card.completed {
+    opacity: 0.6;
+}
+
+/* Collapsible Completed Section */
+.completed-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-sec);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 1rem 0;
+    cursor: pointer;
+    user-select: none;
+}

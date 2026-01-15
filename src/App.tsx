@@ -8,6 +8,7 @@ import Profile from './pages/Profile';
 import Welcome from './pages/Welcome';
 import Auth from './pages/Auth';
 import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import GroupMenu from './pages/Group/GroupMenu';
 import EnterGroup from './pages/Group/EnterGroup';
 import CreateGroup from './pages/Group/CreateGroup';
@@ -61,6 +62,7 @@ function App() {
           <Route path="/" element={<Welcome />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           <Route path="/onboarding" element={
             <SimpleProtectedRoute>

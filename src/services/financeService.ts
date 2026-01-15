@@ -26,7 +26,7 @@ export const financeService = {
         return data || [];
     },
 
-    async addTransaction(title: string, amount: number, type: 'income' | 'expense', category?: string): Promise<void> {
+    async addTransaction(title: string, amount: number, type: 'income' | 'expense', date: Date, category?: string): Promise<void> {
         const group = await groupService.getUserGroup();
         if (!group) throw new Error('No group found');
         const user = (await supabase.auth.getUser()).data.user;
@@ -39,6 +39,7 @@ export const financeService = {
                 amount,
                 type,
                 category,
+                date: date.toISOString(),
                 created_by: user?.id
             });
 
