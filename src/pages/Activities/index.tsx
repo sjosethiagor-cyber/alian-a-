@@ -8,6 +8,7 @@ import { activityService, type ActivityItem } from '../../services/activityServi
 import AddActivityModal from './components/AddActivityModal';
 import Movies from './Movies';
 import BibleStudy from '../BibleStudy';
+import PrayerStudy from './PrayerStudy';
 import './Activities.css';
 
 type ActivityType = 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple' | 'shopping' | 'travel';
@@ -23,6 +24,11 @@ export default function Activities() {
 
     // ... existing code ...
 
+    const [modalCategory, setModalCategory] = useState<ActivityType | 'prayer_video' | null>(null);
+    const [refreshKey, setRefreshKey] = useState(0);
+
+    // ... existing code ...
+
     const handleEdit = (item: ActivityItem) => {
         setEditingItem(item);
         setIsModalOpen(true);
@@ -31,6 +37,7 @@ export default function Activities() {
     const handleCloseModal = () => {
         setIsModalOpen(false);
         setEditingItem(null);
+        setModalCategory(null);
     };
 
     // ... existing code ...
@@ -55,6 +62,7 @@ export default function Activities() {
         try {
             const data = await activityService.getItems(activeTab);
             setItems(data);
+            setRefreshKey(prev => prev + 1); // Trigger sub-component refresh
         } catch (error) {
             console.error(error);
         } finally {
@@ -145,6 +153,18 @@ export default function Activities() {
                         onEdit={handleEdit}
                         onDelete={(id) => deleteItem(id, { stopPropagation: () => { } } as React.MouseEvent)}
                     />
+                ) : activeTab === 'prayer' ? (
+                    <PrayerStudy
+                        items={items}
+                        refreshTrigger={refreshKey}
+                        onToggle={toggleItem}
+                        onAdd={() => setIsModalOpen(true)}
+                        onAddVideo={() => {
+                            setModalCategory('prayer_video');
+                            setIsModalOpen(true);
+                        }}
+                        onDelete={(id) => deleteItem(id, { stopPropagation: () => { } } as React.MouseEvent)}
+                    />
                 ) : (
                     <div className="activities-list">
                         <div className="list-summary">
@@ -184,7 +204,7 @@ export default function Activities() {
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 onSuccess={loadItems}
-                activeTab={activeTab}
+                activeTab={modalCategory || activeTab}
                 initialData={editingItem}
             />
         </div>

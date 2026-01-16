@@ -7,9 +7,25 @@ export interface ActivityItem {
     name: string;
     completed: boolean;
     meta?: string;
+    created_at?: string;
 }
 
 export const activityService = {
+    async getRecentActivity(limit: number = 5): Promise<ActivityItem[]> {
+        const group = await groupService.getUserGroup();
+        if (!group) return [];
+
+        const { data, error } = await supabase
+            .from('activity_items')
+            .select('*')
+            .eq('group_id', group.id)
+            .order('created_at', { ascending: false })
+            .limit(limit);
+
+        if (error) throw error;
+        return data || [];
+    },
+
     async getItems(category: string): Promise<ActivityItem[]> {
         const group = await groupService.getUserGroup();
         if (!group) return [];

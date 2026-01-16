@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
 import StreakCard from './components/StreakCard';
 import StudyCard from './components/StudyCard';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 import { type ActivityItem } from '../../services/activityService';
 
 interface BibleStudyProps {
@@ -14,14 +14,8 @@ interface BibleStudyProps {
 }
 
 export default function BibleStudy({ embedded = false, items = [], onToggle, onAdd, onEdit, onDelete }: BibleStudyProps) {
-    const { profile } = useAuth();
-
-    // ...existing code...
-
-
-
     // Helper to get partner (placeholder for now, similar to original mock)
-    const partnerName = 'Parceiro';
+    // const partnerName = 'Parceiro';
 
     const completedCount = items.filter(i => i.completed).length;
 
@@ -118,12 +112,7 @@ export default function BibleStudy({ embedded = false, items = [], onToggle, onA
                                 scheduledDate={meta.scheduledDate}
                                 scheduledTime={meta.scheduledTime}
                                 completed={item.completed}
-                                progress={{
-                                    user: item.completed,
-                                    partner: false, // TODO: Implement logic to check partner completion from DB if available
-                                    userName: profile?.name?.split(' ')[0] || 'Você',
-                                    partnerName: partnerName
-                                }}
+
                                 onToggle={() => onToggle && onToggle(item.id, item.completed)}
                                 onEdit={() => onEdit && onEdit(item)}
                                 onDelete={() => onDelete && onDelete(item.id)}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Calendar } from 'lucide-react';
+import { X } from 'lucide-react';
 import { financeService } from '../../../services/financeService';
 
 interface TransactionModalProps {

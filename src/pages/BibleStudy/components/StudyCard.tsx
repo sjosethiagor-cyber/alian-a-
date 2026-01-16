@@ -1,13 +1,6 @@
 
 import { Check, ExternalLink, PlayCircle, BookOpen, Pencil, Trash2 } from 'lucide-react';
 
-interface TaskProgress {
-    user: boolean; // Current user completed?
-    partner: boolean; // Partner completed?
-    userName: string;
-    partnerName: string;
-}
-
 interface StudyCardProps {
     type: 'reading' | 'devotional' | 'prayer';
     title: string;
@@ -18,13 +11,12 @@ interface StudyCardProps {
     scheduledDate?: string;
     scheduledTime?: string;
     completed: boolean;
-    progress: TaskProgress;
     onToggle: () => void;
     onEdit?: () => void;
     onDelete?: () => void;
 }
 
-export default function StudyCard({ type, title, description, link, channelName, coverUrl, scheduledDate, scheduledTime, completed, progress, onToggle, onEdit, onDelete }: StudyCardProps) {
+export default function StudyCard({ type, title, description, link, channelName, coverUrl, scheduledDate, scheduledTime, completed, onToggle, onEdit, onDelete }: StudyCardProps) {
     const getBadge = () => {
         switch (type) {
             case 'reading': return { label: 'LEITURA', color: '#3b82f6', bg: 'rgba(59, 130, 246, 0.1)' };
@@ -80,7 +72,7 @@ export default function StudyCard({ type, title, description, link, channelName,
                                 justifyContent: 'center',
                                 backgroundColor: 'rgba(0,0,0,0.3)'
                             }}>
-                                <PlayCircle size={32} color="white" fill="rgba(0,0,0,0.5)" />
+                                <PlayCircle size={32} color="white" />
                             </div>
                         )}
                     </div>
@@ -113,7 +105,7 @@ export default function StudyCard({ type, title, description, link, channelName,
                                 backgroundColor: completed ? '#10b981' : 'transparent',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center'
                             }}>
-                                {completed && <Check size={14} color="white" strokeWidth={3} />}
+                                {completed && <Check size={14} color="white" />}
                             </div>
                         </div>
 

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Calendar, CheckSquare, User, BookOpen } from 'lucide-react';
+import { Calendar, CheckSquare, User, BookOpen } from 'lucide-react';
 import './BottomNav.css';
 
 const NAV_ITEMS = [

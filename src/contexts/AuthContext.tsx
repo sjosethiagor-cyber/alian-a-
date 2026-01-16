@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
-interface Profile {
+export interface Profile {
     id: string;
     updated_at: string;
     name: string;
