@@ -9,6 +9,7 @@ import AddActivityModal from './components/AddActivityModal';
 import Movies from './Movies';
 import BibleStudy from '../BibleStudy';
 import PrayerStudy from './PrayerStudy';
+import Podcast from './Podcast';
 import './Activities.css';
 
 type ActivityType = 'movies' | 'music' | 'bible' | 'prayer' | 'podcast' | 'couple' | 'shopping' | 'travel';
@@ -162,9 +163,12 @@ export default function Activities() {
                         onAddVideo={() => {
                             setModalCategory('prayer_video');
                             setIsModalOpen(true);
+                            setIsModalOpen(true);
                         }}
                         onDelete={(id) => deleteItem(id, { stopPropagation: () => { } } as React.MouseEvent)}
                     />
+                ) : activeTab === 'podcast' ? (
+                    <Podcast items={items} onAdd={() => setIsModalOpen(true)} />
                 ) : (
                     <div className="activities-list">
                         <div className="list-summary">

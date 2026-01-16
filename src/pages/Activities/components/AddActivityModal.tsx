@@ -8,6 +8,7 @@ import MovieForm from './forms/MovieForm';
 import BibleForm from './forms/BibleForm';
 import GeneralForm from './forms/GeneralForm';
 import VideoForm from './forms/VideoForm';
+import PodcastForm from './forms/PodcastForm';
 
 interface AddActivityModalProps {
     isOpen: boolean;
@@ -44,6 +45,10 @@ export interface ActivityFormData {
     youtubeUrl: string;
     duration: string;
     series: string;
+
+    // Podcast specific
+    episode: string;
+    theme: string;
 }
 
 const INITIAL_DATA: ActivityFormData = {
@@ -64,7 +69,9 @@ const INITIAL_DATA: ActivityFormData = {
     scheduledTime: '',
     youtubeUrl: '',
     duration: '',
-    series: ''
+    series: '',
+    episode: '',
+    theme: 'financas'
 };
 
 export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab, initialData }: AddActivityModalProps) {
@@ -102,6 +109,17 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                             mediaType: parsed.mediaType || 'movie',
                             scheduledDate: parsed.scheduledDate || '',
                             scheduledTime: parsed.scheduledTime || ''
+                        });
+                    } else if (activeTab === 'podcast') {
+                        setFormData({
+                            ...baseData,
+                            episode: parsed.episode || '',
+                            duration: parsed.duration || '',
+                            theme: parsed.theme || 'financas',
+                            coverUrl: parsed.coverUrl || '',
+                            scheduledDate: parsed.scheduledDate || '',
+                            scheduledTime: parsed.scheduledTime || '',
+                            link: parsed.link || ''
                         });
                     } else if (activeTab === 'prayer_video') {
                         setFormData({
@@ -161,6 +179,16 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                     coverUrl: formData.coverUrl,
                     scheduledDate: formData.scheduledDate,
                     scheduledTime: formData.scheduledTime
+                });
+            } else if (activeTab === 'podcast') {
+                finalMeta = JSON.stringify({
+                    episode: formData.episode,
+                    duration: formData.duration,
+                    theme: formData.theme,
+                    coverUrl: formData.coverUrl,
+                    scheduledDate: formData.scheduledDate,
+                    scheduledTime: formData.scheduledTime,
+                    link: formData.link
                 });
             } else if (activeTab === 'prayer_video') {
                 finalMeta = JSON.stringify({
@@ -240,6 +268,8 @@ export default function AddActivityModal({ isOpen, onClose, onSuccess, activeTab
                         <MovieForm data={formData} onUpdate={handleUpdate} />
                     ) : activeTab === 'bible' ? (
                         <BibleForm data={formData} onUpdate={handleUpdate} />
+                    ) : activeTab === 'podcast' ? (
+                        <PodcastForm data={formData} onUpdate={handleUpdate} />
                     ) : activeTab === 'prayer_video' ? (
                         <VideoForm data={formData} onUpdate={handleUpdate} />
                     ) : (
